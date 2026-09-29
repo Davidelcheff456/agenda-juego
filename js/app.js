@@ -10,9 +10,9 @@
   const { Fecha } = AQ;
 
   const PANTALLAS_PADRE = ['padre', 'padre-ajustes', 'perfil-form', 'premio-form'];
-  const PANTALLAS_ESTUDIANTE = ['hoy', 'tarea-form', 'tarea', 'examenes', 'examen-form', 'examen', 'materias', 'materia-form', 'mascota', 'pomodoro'];
+  const PANTALLAS_ESTUDIANTE = ['hoy', 'tarea-form', 'tarea', 'examenes', 'examen-form', 'examen', 'materias', 'materia-form', 'mascota', 'pomodoro', 'ajustes'];
   const TITULOS = {
-    hoy: 'Hoy', perfiles: 'Perfiles', padre: 'Panel del padre', mascota: 'Mascota', examenes: 'Exámenes', materias: 'Materias', pomodoro: 'Pomodoro'
+    hoy: 'Hoy', perfiles: 'Perfiles', padre: 'Panel del padre', mascota: 'Mascota', examenes: 'Exámenes', materias: 'Materias', pomodoro: 'Pomodoro', ajustes: 'Configuración'
   };
 
   function almacenSeguro() {
@@ -69,10 +69,6 @@
       this.fotoTemporal = null;
       this.temporizador = new AQ.Temporizador(almacenSeguro());
       this.sonido = new AQ.Sonido();
-      this.preferenciasPomodoro = { foco: 25, descanso: 5 };
-      if (this.temporizador.activo) {
-        this.preferenciasPomodoro = { foco: this.temporizador.estado.foco, descanso: this.temporizador.estado.descanso };
-      }
       this.barraPomodoro = document.getElementById('pomo-barra');
       this.mensajeFeliz = null;
       this.diaActual = Fecha.hoy();
@@ -123,13 +119,13 @@
       if (ev.tipo === 'foco-completo') {
         let monedas = 0;
         try { monedas = this.store.registrarPomodoro(ev.perfilId, ev.minutos, ev.tareaId); } catch (e) { console.error(e); }
-        this.sonido.tocar(true);
+        if (this._sonidoActivo(ev.perfilId)) this.sonido.tocar(true);
         if (ev.perfilId === this.perfilId) { this.felizHasta = Date.now() + 3500; this.mensajeFeliz = '¡Pomodoro completo! Ahora a descansar.'; }
         this.aviso(monedas > 0
           ? '¡Pomodoro completo! +' + monedas + ' monedas. Ahora, ' + T.estado.descanso + ' min de descanso.'
           : '¡Pomodoro completo! Ya llegaste al tope de monedas de hoy, pero el estudio cuenta igual.', 'ok');
       } else {
-        this.sonido.tocar(false);
+        if (this._sonidoActivo(T.estado && T.estado.perfilId)) this.sonido.tocar(false);
         this.aviso('Terminó el descanso. ¿Otro pomodoro?', 'ok');
       }
       this.render();
@@ -148,7 +144,7 @@
         anillo.setAttribute('stroke-dashoffset', (C * (1 - T.restante() / T.total())).toFixed(2));
       }
       const fases = { foco: 'Foco', descanso: 'Descanso', listo: 'Listo' };
-      const base = (TITULOS[this.pantalla] ? TITULOS[this.pantalla] + ' · ' : '') + 'AgendaQuest';
+      const base = (TITULOS[this.pantalla] ? TITULOS[this.pantalla] + ' · ' : '') + AQ.NOMBRE_APP;
       document.title = T.activo ? (texto ? texto + ' ' : '') + fases[T.estado.fase] + ' · ' + base : base;
 
       if (!barra) return;
@@ -165,6 +161,18 @@
         (perfil && e.perfilId !== this.perfilId ? ' · ' + AQ.util.esc(perfil.nombre) : '') + '</span>' +
         '<span class="pomo-barra-tiempo">' + texto + '</span><span class="pomo-ver">Ver</span></button>';
       if (barra.dataset.html !== html) { barra.innerHTML = html; barra.dataset.html = html; }
+    }
+
+    /** Aplica tamaño de letra y animaciones del perfil activo (en el panel del padre, los valores normales). */
+    _aplicarAjustes() {
+      const usar = this.perfil() && !this.modoPadre && PANTALLAS_ESTUDIANTE.includes(this.pantalla);
+      const a = usar ? this.store.ajustes(this.perfilId) : AQ.Repositorio.ajustesBase();
+      document.documentElement.dataset.letra = a.letra;
+      document.body.classList.toggle('sin-animaciones', !a.animaciones);
+    }
+
+    _sonidoActivo(perfilId) {
+      return this.store.ajustes(perfilId || this.perfilId).sonido !== false;
     }
 
     /** Pide que la pantalla no se apague durante el pomodoro (si el navegador lo permite). */
@@ -228,6 +236,7 @@
       const vista = AQ.vistas[this.pantalla];
       this.raiz.innerHTML = vista ? vista(this) : '';
       this.raiz.dataset.pantalla = this.pantalla;
+      this._aplicarAjustes();
       this._pintarPomodoro();
     }
 
@@ -515,6 +524,18 @@
       if (hechos) this.aviso('¡Bien! Completaste ' + hechos + (hechos === 1 ? ' pomodoro.' : ' pomodoros.'), 'ok');
     },
 
+    'salir-perfil'() {
+      this.perfilId = null;
+      this.historial = [];
+      this.ir('perfiles', {}, { sinHistorial: true });
+      this.aviso('Saliste de tu cuenta. ¡Hasta la próxima!', 'ok');
+    },
+
+    'probar-sonido'() {
+      this.sonido.preparar();
+      this.sonido.tocar(true);
+    },
+
     'salir-padre'() {
       this.padreDesbloqueado = false;
       this.historial = [];
@@ -679,11 +700,17 @@
 
     pomodoro(form, d) {
       this.sonido.preparar();
-      this.preferenciasPomodoro = { foco: Number(d.foco), descanso: Number(d.descanso) };
       this.temporizador.iniciar(this.perfilId, d.foco, d.descanso, d.tareaId || null);
+      // La última elección queda como predeterminada para la próxima vez.
+      try { this.store.editarAjustes(this.perfilId, { foco: d.foco, descanso: d.descanso }); } catch (e) { /* no es grave */ }
       this._mantenerPantalla(true);
       this.render();
       window.scrollTo(0, 0);
+    },
+
+    'nombre-mascota'(form, d) {
+      this.store.renombrarMascota(this.perfilId, d.nombre);
+      this.aviso('Ahora tu mascota se llama ' + d.nombre.trim() + '.', 'ok');
     },
 
     'cambiar-pin'(form, d) {
@@ -695,6 +722,13 @@
 
   // ---------- Cambios en campos ----------
   App.prototype.cambios = {
+    ajuste(el) {
+      const valor = el.type === 'checkbox' ? el.checked : el.value;
+      this.store.editarAjustes(this.perfilId, { [el.name]: valor });
+      const foco = this.raiz.querySelector('[name="' + el.name + '"]' + (el.type === 'checkbox' ? '' : '[value="' + el.value + '"]'));
+      if (foco) foco.focus();
+    },
+
     foto(el) {
       const archivo = el.files && el.files[0];
       if (!archivo) return;

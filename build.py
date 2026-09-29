@@ -13,8 +13,13 @@ RAIZ = pathlib.Path(__file__).resolve().parent
 DIST = RAIZ / 'dist'
 DIST.mkdir(exist_ok=True)
 
+import base64
 html = (RAIZ / 'index.html').read_text(encoding='utf-8')
 css = (RAIZ / 'css' / 'styles.css').read_text(encoding='utf-8')
+# La fuente va dentro del archivo, así funciona sin internet y sin archivos sueltos.
+fuente = base64.b64encode((RAIZ / 'fonts' / 'lexend-latin.woff2').read_bytes()).decode('ascii')
+css = css.replace("url('../fonts/lexend-latin.woff2')", "url(data:font/woff2;base64," + fuente + ")")
+assert 'data:font/woff2' in css
 
 html = html.replace('<link rel="stylesheet" href="css/styles.css">', '<style>\n' + css + '\n</style>')
 

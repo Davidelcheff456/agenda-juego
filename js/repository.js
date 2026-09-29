@@ -74,6 +74,11 @@
 
   class ErrorAlmacenamiento extends Error {}
 
+  /** Preferencias de cada estudiante (pantalla de Configuración). */
+  Repositorio.ajustesBase = function () {
+    return { letra: 'normal', sonido: true, animaciones: true, foco: 25, descanso: 5 };
+  };
+
   /** Completa campos faltantes para que datos viejos o importados no rompan la app. */
   Repositorio.normalizar = function (datos) {
     if (!datos || typeof datos !== 'object') throw new Error('Formato inválido');
@@ -88,6 +93,7 @@
       p.bonosSemana = Array.isArray(p.bonosSemana) ? p.bonosSemana : [];
       p.revision = Object.assign({ ultima: null, racha: 0 }, p.revision || {});
       p.vida = Object.assign({ valor: 5, revisadoHasta: null, comioEl: null, vacaciones: false }, p.vida || {});
+      p.ajustes = Object.assign(Repositorio.ajustesBase(), p.ajustes || {});
     }
     return datos;
   };

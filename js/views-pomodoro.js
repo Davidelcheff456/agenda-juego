@@ -32,20 +32,20 @@
     // Un pomodoro de otro perfil sigue corriendo en este dispositivo.
     if (T.activo && T.estado.perfilId !== p.id) {
       const otro = s.perfil(T.estado.perfilId);
-      return '<main class="pantalla con-nav">' + ui.encabezado('Pomodoro', null) +
+      return '<main class="pantalla con-nav">' + ui.encabezado('Pomodoro', null, ui.botonAjustes('pomodoro')) +
         ui.vacio('Hay un pomodoro de ' + esc(otro ? otro.nombre : 'otro perfil') + ' en curso en este dispositivo.',
           '<button type="button" class="boton secundario" data-accion="pomo-terminar">Terminarlo</button>') +
         ui.navEstudiante('pomodoro') + '</main>';
     }
 
     if (!T.activo) {
-      const pref = app.preferenciasPomodoro || { foco: 25, descanso: 5 };
+      const pref = s.ajustes(p.id);
       const pendientes = s.tareasDe(p.id).filter((t) => t.estado === 'pendiente').sort((a, b) => a.vence.localeCompare(b.vence));
       const opcionesTarea = pendientes.map((t) => {
         const m = s.materia(t.materiaId);
         return '<option value="' + t.id + '">' + esc((m ? m.nombre + ': ' : '') + t.titulo) + '</option>';
       }).join('');
-      return '<main class="pantalla con-nav">' + ui.encabezado('Pomodoro', null) +
+      return '<main class="pantalla con-nav">' + ui.encabezado('Pomodoro', null, ui.botonAjustes('pomodoro')) +
         '<p class="texto-suave">Estudiás sin distraerte un rato fijo y después descansás. Cada pomodoro completo suma monedas.</p>' +
         '<form class="formulario" data-form="pomodoro">' +
         '<fieldset><legend>¿Cuánto dura cada pomodoro?</legend><div class="grilla-tiempos">' + chips('foco', pomodoro.OPCIONES_FOCO, pref.foco, 'min') + '</div></fieldset>' +

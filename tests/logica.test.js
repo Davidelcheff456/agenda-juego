@@ -308,4 +308,20 @@ prueba('formato del reloj redondea hacia arriba', () => {
   assert.strictEqual(AQ.pomodoro.formatear(0), '00:00');
 });
 
+prueba('configuración del estudiante', () => {
+  const { s, p } = nuevoStore();
+  assert.deepStrictEqual(s.ajustes(p.id), { letra: 'normal', sonido: true, animaciones: true, foco: 25, descanso: 5 });
+  s.editarAjustes(p.id, { letra: 'grande', sonido: false, foco: '30', descanso: '10' });
+  assert.deepStrictEqual(s.ajustes(p.id), { letra: 'grande', sonido: false, animaciones: true, foco: 30, descanso: 10 });
+  assert.throws(() => s.editarAjustes(p.id, { foco: 17 }), AQ.ErrorValidacion);
+  assert.throws(() => s.editarAjustes(p.id, { letra: 'enorme' }), AQ.ErrorValidacion);
+  s.renombrarMascota(p.id, '  Pixel ');
+  assert.strictEqual(s.perfil(p.id).mascota.nombre, 'Pixel');
+  assert.throws(() => s.renombrarMascota(p.id, '   '), AQ.ErrorValidacion);
+  // una copia vieja sin ajustes se completa al importar
+  const viejo = JSON.parse(s.exportar()); delete viejo.perfiles[0].ajustes;
+  s.importar(JSON.stringify(viejo));
+  assert.strictEqual(s.ajustes(p.id).letra, 'normal');
+});
+
 console.log('\n' + pasadas + ' pruebas pasadas');

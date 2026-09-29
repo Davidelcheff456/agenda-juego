@@ -43,6 +43,11 @@
       '<div class="barra-extra">' + (extra || '') + '</div></header>';
   }
 
+  function botonAjustes(volver) {
+    return '<button type="button" class="boton-icono" data-accion="ir" data-pantalla="ajustes"' + (volver ? ' data-volver="' + volver + '"' : '') +
+      ' aria-label="Configuración">' + icono('ajustes', 20) + '</button>';
+  }
+
   function navEstudiante(activa) {
     const items = [
       ['hoy', 'Hoy', 'hoy'], ['examenes', 'Exámenes', 'examen'], ['pomodoro', 'Pomodoro', 'reloj'], ['materias', 'Materias', 'materias'], ['mascota', 'Mascota', 'mascota']
@@ -109,5 +114,5 @@
     return '<div class="vacio"><p>' + texto + '</p>' + (boton || '') + '</div>';
   }
 
-  AQ.ui = { icono, moneda, encabezado, navEstudiante, puntoMateria, filaTarea, barra, vida, vacio };
+  AQ.ui = { icono, moneda, botonAjustes, encabezado, navEstudiante, puntoMateria, filaTarea, barra, vida, vacio };
 })(globalThis.AQ = globalThis.AQ || {});

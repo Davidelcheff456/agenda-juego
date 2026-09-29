@@ -63,6 +63,8 @@ js/pomodoro.js          Temporizador (lógica del pomodoro, con reloj inyectable
 js/ui.js                piezas de interfaz reutilizables
 js/views-estudiante.js  pantallas del estudiante
 js/views-padre.js       PIN, panel del padre y ajustes
+(views-estudiante.js incluye también la pantalla Configuración del estudiante)
+fonts/                  Lexend (licencia SIL OFL), incluida para que la app se vea igual sin internet
 js/views-pomodoro.js    pantalla del pomodoro
 js/app.js               controlador: navegación, eventos y arranque
 tests/logica.test.js    pruebas de la lógica:   node tests/logica.test.js
@@ -82,4 +84,4 @@ Escribir una clase nueva que extienda `Repositorio` con `cargar()` y `guardar(es
 - El almacenamiento del navegador tiene un límite (normalmente unos 5 MB). Las fotos se achican, pero conviene borrar las de tareas aprobadas desde *Ajustes*.
 - El sonido del pomodoro suena si la app está abierta. Con la pantalla bloqueada, muchos celulares frenan la página y el aviso llega al volver a abrirla (el tiempo igual se cuenta bien). La app pide que la pantalla no se apague durante el pomodoro, si el navegador lo permite.
 - No hay notificaciones: la app avisa al abrirla. Por eso la revisión diaria con el padre es parte del sistema.
-- Las fuentes se descargan de Google Fonts; sin internet se usan fuentes del sistema y todo lo demás funciona igual.
+- El nombre de la app se cambia en `AQ.NOMBRE_APP` (js/util.js) y en el `<title>` de index.html.

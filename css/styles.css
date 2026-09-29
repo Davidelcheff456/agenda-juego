@@ -1,4 +1,14 @@
-/* AgendaQuest — estilos. Oscuro, estilo gamer sobrio, pensado primero para celular. */
+/* Estilos de la app. Oscuro, estilo gamer sobrio, pensado primero para celular. */
+
+/* Lexend (licencia SIL OFL, ver fonts/LICENSE-Lexend.txt): diseñada para que leer cueste menos.
+   Va incluida en la app, así se ve igual sin internet. */
+@font-face {
+  font-family: 'Lexend';
+  src: url('../fonts/lexend-latin.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
   --fondo: #12141C;
@@ -18,8 +28,9 @@
   --azul: #6EC5FF;
   --azul-fondo: #1A2233;
   --radio: 14px;
-  --pixel: 'Pixelify Sans', 'Courier New', monospace;
-  --sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Lexend: diseñada para leer fácil; números claros y sin ambigüedad. */
+  --pixel: 'Lexend', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --sans: 'Lexend', system-ui, -apple-system, 'Segoe UI', sans-serif;
   color-scheme: dark;
 }
 
@@ -62,7 +73,7 @@ img { max-width: 100%; }
 .saludo { flex-grow: 1; display: flex; flex-direction: column; min-width: 0; }
 .saludo h1 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.titulo-pixel { font-family: var(--pixel); font-weight: 700; font-size: 22px; letter-spacing: .3px; }
+.titulo-pixel { font-family: var(--pixel); font-weight: 700; font-size: 22px; letter-spacing: -.01em; }
 .titulo-pixel.grande { font-size: 30px; }
 .titulo-pixel.azul { color: var(--azul); font-size: 18px; margin: 0; }
 .subtitulo { margin: 0; font-size: 20px; font-weight: 500; color: var(--suave); }
@@ -263,7 +274,7 @@ button.fila-cuerpo:hover { background: rgba(255,255,255,.03); }
 .fila-examen-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .fecha-bloque { width: 44px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
 .fecha-bloque small { font-size: 11px; color: var(--suave); }
-.fecha-bloque b { font-family: var(--pixel); font-size: 22px; }
+.fecha-bloque b { font-family: var(--pixel); font-size: 22px; font-weight: 600; }
 
 .lista-plan { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
 .lista-plan li { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 12px; background: var(--fondo); font-size: 14px; }
@@ -356,7 +367,7 @@ input::placeholder, textarea::placeholder { color: var(--tenue); }
 .revision-accion { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .kpi { background: var(--panel); border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; }
-.kpi-valor { font-family: var(--pixel); font-size: 30px; line-height: 1.1; }
+.kpi-valor { font-family: var(--pixel); font-size: 30px; font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .columnas { display: grid; grid-template-columns: 1fr; gap: 16px; }
 .columna { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .item-aprobar { display: flex; flex-direction: column; gap: 8px; padding: 8px 10px 12px; border-radius: var(--radio); background: var(--fondo); margin-bottom: 8px; }
@@ -391,7 +402,7 @@ select:focus { border-color: var(--lima); outline: none; }
 .grilla-tiempos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .grilla-tiempos.tres { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .chip-tiempo span { justify-content: center; min-height: 56px; font-size: 14px; }
-.chip-tiempo b { font-family: var(--pixel); font-size: 22px; }
+.chip-tiempo b { font-family: var(--pixel); font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .boton.grande { min-height: 58px; font-size: 18px; }
 
 .reloj-pomodoro { display: flex; flex-direction: column; align-items: center; gap: 10px; }
@@ -399,7 +410,7 @@ select:focus { border-color: var(--lima); outline: none; }
 .anillo { position: relative; width: min(280px, 78vw); aspect-ratio: 1; max-width: 100%; }
 .anillo svg { width: 100%; height: 100%; display: block; }
 .anillo-centro { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
-.tiempo-grande { font-family: var(--pixel); font-size: clamp(52px, 17vw, 72px); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+.tiempo-grande { font-family: var(--pixel); font-size: clamp(52px, 17vw, 72px); font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1; }
 .fase-descanso .tiempo-grande { color: var(--azul); }
 .tarea-pomodoro { margin: 0; display: flex; align-items: center; gap: 8px; font-weight: 500; text-align: center; }
 .consejo { margin: 0; padding: 12px 14px; border-radius: var(--radio); background: var(--panel); color: var(--suave); font-size: 14px; text-align: center; max-width: 360px; }
@@ -421,12 +432,44 @@ select:focus { border-color: var(--lima); outline: none; }
 .pomo-punto { width: 10px; height: 10px; border-radius: 2px; background: var(--lima); flex-shrink: 0; }
 .fase-descanso .pomo-punto, .fase-listo .pomo-punto { background: var(--azul); }
 .pomo-etiqueta { flex-grow: 1; text-align: left; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pomo-barra-tiempo { font-family: var(--pixel); font-size: 22px; font-variant-numeric: tabular-nums; }
+.pomo-barra-tiempo { font-family: var(--pixel); font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .pomo-ver { font-size: 13px; color: var(--lima); }
 body.con-barra-pomo { padding-top: calc(58px + env(safe-area-inset-top, 0px)); }
 body.con-barra-pomo .zona-avisos { top: calc(66px + env(safe-area-inset-top, 0px)); }
 .dos-datos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 8px; }
 .dos-datos > div { display: flex; flex-direction: column; }
+
+/* ---------- Configuración ---------- */
+.seccion-ajustes { display: flex; flex-direction: column; gap: 12px; }
+.seccion-ajustes .titulo-chico { margin: 0; }
+.etiqueta-ajuste { margin: 4px 0 -4px; font-size: 14px; font-weight: 700; }
+.segmentado { display: grid; grid-template-columns: repeat(auto-fit, minmax(58px, 1fr)); gap: 8px; }
+.segmentado .chip-radio span { padding: 0 6px; text-align: center; }
+.segmentado .chip-radio span { justify-content: center; }
+.fila-ajuste { display: flex; align-items: center; gap: 12px; min-height: 48px; }
+.interruptor { cursor: pointer; position: relative; }
+.interruptor input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.switch {
+  width: 52px; height: 30px; border-radius: 15px; background: var(--panel-2); border: 2px solid var(--borde-fuerte);
+  position: relative; flex-shrink: 0; transition: background .2s;
+}
+.switch::after {
+  content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--suave); transition: transform .2s, background .2s;
+}
+.interruptor input:checked + .switch { background: var(--lima-fondo); border-color: var(--lima); }
+.interruptor input:checked + .switch::after { transform: translateX(22px); background: var(--lima); }
+.interruptor input:focus-visible + .switch { outline: 3px solid var(--azul); outline-offset: 2px; }
+
+/* Tamaño de letra elegido en Configuración */
+html[data-letra="grande"] #app, html[data-letra="grande"] #pomo-barra { zoom: 1.12; }
+html[data-letra="muy-grande"] #app, html[data-letra="muy-grande"] #pomo-barra { zoom: 1.25; }
+
+/* Animaciones apagadas desde Configuración */
+body.sin-animaciones *, body.sin-animaciones *::before, body.sin-animaciones *::after {
+  animation: none !important; transition: none !important;
+}
+body.sin-animaciones .chispas { display: none; }
 
 /* ---------- Diálogo ---------- */
 .fondo-dialogo {

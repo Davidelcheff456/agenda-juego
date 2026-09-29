@@ -109,6 +109,9 @@
 
   function limitar(n, min, max) { return Math.max(min, Math.min(max, n)); }
 
+  /** Nombre de la app: se cambia acá y en el <title> de index.html. */
+  AQ.NOMBRE_APP = 'AgendaQuest';
+
   AQ.Fecha = Fecha;
   AQ.util = { nuevoId, esc, hashPin, limitar };
 })(globalThis.AQ = globalThis.AQ || {});

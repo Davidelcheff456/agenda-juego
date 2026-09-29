@@ -85,7 +85,8 @@
           mascota: { nombre: textoLimpio(datos.mascota, 20) || 'Brote', color: 'lima', fondo: 'ninguno', colores: ['lima'], fondos: ['ninguno'] },
           bonosSemana: [],
           revision: { ultima: null, racha: 0 },
-          vida: { valor: reglas.VIDA.MAX, revisadoHasta: Fecha.sumarDias(Fecha.hoy(), -1), comioEl: null, vacaciones: false }
+          vida: { valor: reglas.VIDA.MAX, revisadoHasta: Fecha.sumarDias(Fecha.hoy(), -1), comioEl: null, vacaciones: false },
+          ajustes: AQ.Repositorio.ajustesBase()
         };
         this.estado.perfiles.push(p);
         return p;
@@ -340,6 +341,32 @@
       return ganadas - descontadas;
     }
     nivel(perfilId) { return reglas.nivelDesdeXp(Math.max(0, this.xp(perfilId))); }
+
+    // ---------- Configuración del estudiante ----------
+    ajustes(perfilId) {
+      const p = this.perfil(perfilId);
+      return p ? p.ajustes : AQ.Repositorio.ajustesBase();
+    }
+
+    /** Cambia preferencias validando cada valor. */
+    editarAjustes(perfilId, cambios) {
+      const p = this.perfil(perfilId);
+      exigir(p, 'Perfil no encontrado.');
+      const a = Object.assign({}, p.ajustes);
+      if ('letra' in cambios) { exigir(['normal', 'grande', 'muy-grande'].includes(cambios.letra), 'Tamaño de letra inválido.'); a.letra = cambios.letra; }
+      if ('foco' in cambios) { exigir(AQ.pomodoro.OPCIONES_FOCO.includes(Number(cambios.foco)), 'Duración inválida.'); a.foco = Number(cambios.foco); }
+      if ('descanso' in cambios) { exigir(AQ.pomodoro.OPCIONES_DESCANSO.includes(Number(cambios.descanso)), 'Duración inválida.'); a.descanso = Number(cambios.descanso); }
+      ['sonido', 'animaciones'].forEach((k) => { if (k in cambios) a[k] = !!cambios[k]; });
+      return this._confirmar('ajustes', () => { p.ajustes = a; });
+    }
+
+    renombrarMascota(perfilId, nombre) {
+      const p = this.perfil(perfilId);
+      const limpio = textoLimpio(nombre, 20);
+      exigir(p, 'Perfil no encontrado.');
+      exigir(limpio, 'Escribí un nombre para tu mascota.');
+      return this._confirmar('perfiles', () => { p.mascota.nombre = limpio; });
+    }
 
     // ---------- Vida y comida de la mascota ----------
     /**
@@ -641,13 +668,13 @@
 
     // ---------- Copia de seguridad ----------
     exportar() {
-      return JSON.stringify(Object.assign({ exportado: new Date().toISOString(), app: 'AgendaQuest' }, this.estado), null, 2);
+      return JSON.stringify(Object.assign({ exportado: new Date().toISOString(), app: AQ.NOMBRE_APP }, this.estado), null, 2);
     }
 
     importar(texto) {
       let datos;
-      try { datos = JSON.parse(texto); } catch (e) { throw new ErrorValidacion('El archivo no es una copia de AgendaQuest válida.'); }
-      exigir(datos && Array.isArray(datos.perfiles), 'El archivo no es una copia de AgendaQuest válida.');
+      try { datos = JSON.parse(texto); } catch (e) { throw new ErrorValidacion('El archivo no es una copia de seguridad válida.'); }
+      exigir(datos && Array.isArray(datos.perfiles), 'El archivo no es una copia de seguridad válida.');
       delete datos.exportado; delete datos.app;
       const normal = AQ.Repositorio.normalizar(datos);
       return this._confirmar('importar', () => { this.estado = normal; });

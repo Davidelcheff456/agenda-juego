@@ -13,7 +13,7 @@
 
   V.bienvenida = function () {
     return '<main class="pantalla centrada">' +
-      '<div class="logo">' + ui.moneda(30) + '<span class="titulo-pixel grande">AgendaQuest</span></div>' +
+      '<div class="logo">' + ui.moneda(30) + '<span class="titulo-pixel grande">' + esc(AQ.NOMBRE_APP) + '</span></div>' +
       '<p class="texto-suave">La agenda escolar con mascota. Primero, el padre o la madre crea un PIN de 4 números para su panel de control.</p>' +
       '<form class="tarjeta formulario" data-form="crear-pin">' +
       '<label for="pin1">PIN del padre (4 números)</label>' +
@@ -47,7 +47,7 @@
         '<span class="texto-chico">' + estado + '</span></button>';
     }).join('');
     return '<main class="pantalla">' +
-      '<div class="logo">' + ui.moneda(28) + '<span class="titulo-pixel grande">AgendaQuest</span></div>' +
+      '<div class="logo">' + ui.moneda(28) + '<span class="titulo-pixel grande">' + esc(AQ.NOMBRE_APP) + '</span></div>' +
       '<h1 class="subtitulo">¿Quién va a estudiar hoy?</h1>' +
       (s.perfiles.length ? '<div class="grilla-perfiles">' + tarjetas + '</div>'
         : ui.vacio('Todavía no hay perfiles.', '<button type="button" class="boton primario" data-accion="pedir-pin" data-destino="perfil-form">Crear el primer perfil</button>')) +
@@ -141,7 +141,7 @@
 
     return '<main class="pantalla con-nav">' +
       '<header class="barra">' +
-      '<button type="button" class="boton-icono" data-accion="ir" data-pantalla="perfiles" aria-label="Cambiar de perfil">' + ui.icono('perfiles', 20) + '</button>' +
+      ui.botonAjustes('hoy') +
       '<div class="saludo"><span class="texto-chico">' + esc(Fecha.larga(hoy)) + '</span><h1 class="titulo-pixel">Hola, ' + esc(p.nombre) + '</h1></div>' +
       '<button type="button" class="pastilla-monedas" data-accion="ir" data-pantalla="mascota" aria-label="Monedas: ' + s.saldo(p.id) + '. Ir a la tienda">' + ui.moneda(16) + s.saldo(p.id) + '</button>' +
       '</header>' +
@@ -248,7 +248,7 @@
         (x.fecha >= hoy ? 'Sesiones ' + hechas + ' de ' + ses.length : (x.nota ? 'Nota: ' + esc(x.nota) : 'Sin nota cargada')) + '</span></span></button>';
     };
     return '<main class="pantalla con-nav">' +
-      ui.encabezado('Exámenes', null) +
+      ui.encabezado('Exámenes', null, ui.botonAjustes('examenes')) +
       '<button type="button" class="boton primario ancho" data-accion="ir" data-pantalla="examen-form">' + ui.icono('mas', 20, 3) + 'Agendar examen</button>' +
       '<section class="seccion"><h2 class="titulo-seccion azul">Próximos</h2>' +
       (proximos.length ? proximos.map(fila).join('') : ui.vacio('No tenés exámenes agendados.')) + '</section>' +
@@ -324,7 +324,7 @@
     const s = app.store;
     const lista = s.materiasDe(app.perfilId);
     return '<main class="pantalla con-nav">' +
-      ui.encabezado('Materias', null) +
+      ui.encabezado('Materias', null, ui.botonAjustes('materias')) +
       '<button type="button" class="boton primario ancho" data-accion="ir" data-pantalla="materia-form">' + ui.icono('mas', 20, 3) + 'Agregar materia</button>' +
       (lista.length ? '<ul class="lista-simple">' + lista.map((m) =>
         '<li><span class="cuadro-color" style="background:' + esc(m.color) + '"></span>' +
@@ -393,7 +393,7 @@
     const movs = s.movimientosDe(p.id).slice(-12).reverse();
 
     return '<main class="pantalla con-nav">' +
-      ui.encabezado('Tu mascota', null, '<span class="pastilla-monedas">' + ui.moneda(16) + saldo + '</span>') +
+      ui.encabezado('Tu mascota', null, '<span class="pastilla-monedas">' + ui.moneda(16) + saldo + '</span>' + ui.botonAjustes('mascota')) +
       tarjetaMascota(app, true) +
       '<section class="tarjeta">' +
       '<div class="fila-entre"><b>Nivel ' + m.nivel + ' · ' + reglas.NOMBRE_ETAPA[m.etapa] + '</b><span class="texto-chico">' + xpNivel + ' / ' + reglas.XP_POR_NIVEL + '</span></div>' +
@@ -423,5 +423,71 @@
       '<li>Con ' + reglas.VIDA.DEBIL + ' de vida o menos se pone débil. Con 0 queda sin fuerzas, pero no se muere: comiendo se recupera.</li>' +
       '</ul></section>' +
       ui.navEstudiante('mascota') + '</main>';
+  };
+})(globalThis.AQ = globalThis.AQ || {});
+
+/*
+ * Configuración del estudiante: preferencias que guarda cada perfil.
+ */
+(function (AQ) {
+  'use strict';
+
+  const { util, ui, pomodoro } = AQ;
+  const esc = util.esc;
+  const V = AQ.vistas;
+
+  function opciones(nombre, lista, elegido) {
+    return '<div class="segmentado" role="radiogroup">' + lista.map(([valor, texto]) =>
+      '<label class="chip-radio"><input type="radio" name="' + nombre + '" value="' + valor + '"' + (String(valor) === String(elegido) ? ' checked' : '') + ' data-cambio="ajuste">' +
+      '<span>' + texto + '</span></label>').join('') + '</div>';
+  }
+
+  function interruptor(nombre, titulo, detalle, activo) {
+    return '<label class="fila-ajuste interruptor" for="aj-' + nombre + '">' +
+      '<span class="lista-texto"><b>' + titulo + '</b><small>' + detalle + '</small></span>' +
+      '<input type="checkbox" role="switch" id="aj-' + nombre + '" name="' + nombre + '"' + (activo ? ' checked' : '') + ' data-cambio="ajuste">' +
+      '<span class="switch" aria-hidden="true"></span></label>';
+  }
+
+  V.ajustes = function (app) {
+    const s = app.store;
+    const p = app.perfil();
+    const a = s.ajustes(p.id);
+    return '<main class="pantalla">' +
+      ui.encabezado('Configuración', app.params.volver || 'hoy') +
+
+      '<section class="tarjeta seccion-ajustes"><h2 class="titulo-chico">Tu cuenta</h2>' +
+      '<div class="fila-ajuste"><span class="lista-texto"><b>' + esc(p.nombre) + '</b><small>' + (p.anio ? esc(p.anio) + ' · ' : '') + 'Nivel ' + s.nivel(p.id) + '</small></span></div>' +
+      '<form class="formulario" data-form="nombre-mascota">' +
+      '<label for="nombre-mascota">Nombre de tu mascota</label>' +
+      '<div class="fila-form"><input id="nombre-mascota" name="nombre" type="text" maxlength="20" required value="' + esc(p.mascota.nombre) + '">' +
+      '<button class="boton secundario" type="submit">Guardar</button></div></form>' +
+      '</section>' +
+
+      '<section class="tarjeta seccion-ajustes"><h2 class="titulo-chico">Pantalla</h2>' +
+      '<p class="etiqueta-ajuste">Tamaño de letra</p>' +
+      opciones('letra', [['normal', 'Normal'], ['grande', 'Grande'], ['muy-grande', 'Muy grande']], a.letra) +
+      interruptor('animaciones', 'Animaciones', 'Saltos y chispas de la mascota.', a.animaciones) +
+      '</section>' +
+
+      '<section class="tarjeta seccion-ajustes"><h2 class="titulo-chico">Pomodoro</h2>' +
+      '<p class="etiqueta-ajuste">Tiempo de estudio que aparece elegido</p>' +
+      opciones('foco', pomodoro.OPCIONES_FOCO.map((n) => [n, n + ' min']), a.foco) +
+      '<p class="etiqueta-ajuste">Descanso que aparece elegido</p>' +
+      opciones('descanso', pomodoro.OPCIONES_DESCANSO.map((n) => [n, n + ' min']), a.descanso) +
+      interruptor('sonido', 'Sonido al terminar', 'Tres pitidos cuando termina el estudio o el descanso.', a.sonido) +
+      (a.sonido ? '<button type="button" class="enlace" data-accion="probar-sonido">Probar sonido</button>' : '') +
+      '</section>' +
+
+      '<section class="tarjeta seccion-ajustes"><h2 class="titulo-chico">Sesión</h2>' +
+      '<div class="acciones">' +
+      '<button type="button" class="boton secundario ancho" data-accion="pedir-pin" data-destino="padre">' + ui.icono('candado', 18) + 'Panel del padre</button>' +
+      '<button type="button" class="boton peligro ancho" data-accion="salir-perfil">' + ui.icono('salir', 18) + 'Salir de mi cuenta</button>' +
+      '</div>' +
+      '<p class="texto-chico">Salir te lleva a la pantalla de perfiles. Tus tareas, monedas y mascota quedan guardadas.</p>' +
+      '</section>' +
+
+      '<p class="texto-chico centro">' + esc(AQ.NOMBRE_APP) + ' · Los datos se guardan en este dispositivo.</p>' +
+      '</main>';
   };
 })(globalThis.AQ = globalThis.AQ || {});

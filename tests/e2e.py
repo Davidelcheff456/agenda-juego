@@ -155,9 +155,25 @@ with sync_playwright() as p:
     assert page.locator('#pomo-barra').is_hidden()
     page.click('.nav-item:has-text("Hoy")')
 
+    paso('configuración')
+    page.click('[aria-label="Configuración"]')
+    page.wait_for_selector('text=Tu cuenta')
+    page.click('.segmentado .chip-radio:has-text("Grande")')
+    assert page.evaluate("document.documentElement.dataset.letra") == 'grande'
+    page.fill('#nombre-mascota', 'Pixel')
+    page.click('form[data-form="nombre-mascota"] button')
+    page.click('label[for="aj-sonido"]')
+    assert page.evaluate("AQ.app.store.ajustes(AQ.app.perfilId).sonido") is False
+    foto(page, '19-configuracion')
+    page.click('.segmentado .chip-radio:has-text("Normal")')
+    page.click('button:has-text("Salir de mi cuenta")')
+    page.wait_for_selector('text=¿Quién va a estudiar hoy?')
+    page.click('.tarjeta-perfil')
+    page.wait_for_selector('text=Pixel')
+
     paso('panel del padre')
-    page.click('[data-accion="ir"][data-pantalla="perfiles"]')
-    page.click('text=Panel del padre')
+    page.click('[aria-label="Configuración"]')
+    page.click('button:has-text("Panel del padre")')
     page.fill('#pin', '0000'); page.click('button:has-text("Entrar")')
     page.wait_for_selector('text=PIN incorrecto')
     page.fill('#pin', '1234'); page.click('button:has-text("Entrar")')
@@ -201,8 +217,8 @@ with sync_playwright() as p:
     paso('devolver con nota')
     page.click('.nav-item:has-text("Hoy")')
     page.click('.fila-tarea:has-text("Cuestionario") .casillero')
-    page.click('[data-accion="ir"][data-pantalla="perfiles"]')
-    page.click('text=Panel del padre')
+    page.click('[aria-label="Configuración"]')
+    page.click('button:has-text("Panel del padre")')
     page.fill('#pin', '1234'); page.click('button:has-text("Entrar")')
     page.click('button:has-text("Devolver con nota")')
     page.fill('.form-devolver input', 'Falta la pregunta 4')
@@ -229,7 +245,8 @@ with sync_playwright() as p:
     assert vida == 'Vida: 3 de 5', vida
     foto(page, '18-mascota-debilitada')
     page.evaluate("AQ.Fecha.fijar(null)")
-    page.click('[data-accion="ir"][data-pantalla="perfiles"]')
+    page.click('[aria-label="Configuración"]')
+    page.click('button:has-text("Salir de mi cuenta")')
 
     paso('exportar copia')
     page.click('text=Panel del padre')
