@@ -2205,9 +2205,10 @@ body.sin-animaciones .chispas { display: none; }
       else if (r.vencidas) estado = '<span class="mal">' + r.vencidas + (r.vencidas === 1 ? ' vencida' : ' vencidas') + '</span>';
       else if (r.urgentes) estado = '<span class="alerta">' + r.urgentes + ' para hoy o mañana</span>';
       else if (!r.tieneTareas) estado = '<span class="texto-suave">Sin tareas todavía</span>';
-      return '<button type="button" class="tarjeta-perfil" data-accion="entrar" data-id="' + p.id + '">' +
+      // Debajo de la mascota va el nombre de la mascota; el del estudiante queda para lectores de pantalla.
+      return '<button type="button" class="tarjeta-perfil" data-accion="entrar" data-id="' + p.id + '" aria-label="Entrar como ' + esc(p.nombre) + ' (mascota ' + esc(p.mascota.nombre) + ')">' +
         AQ.dibujarMascota({ etapa: m.etapa, estado: m.estado, color: m.color, tamanio: 88, grietas: m.validadas }) +
-        '<span class="nombre-perfil">' + esc(p.nombre) + '</span>' +
+        '<span class="nombre-perfil">' + esc(p.mascota.nombre) + '</span>' +
         (r.nacida ? ui.vida(m.vida, reglas.VIDA.MAX, true) : '<span class="texto-chico">Huevo · ' + m.validadas + ' de ' + reglas.TAREAS_PARA_NACER + '</span>') +
         '<span class="monedas">' + ui.moneda(14) + s.saldo(p.id) + '</span>' +
         '<span class="texto-chico">' + estado + '</span></button>';
