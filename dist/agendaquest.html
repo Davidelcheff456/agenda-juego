@@ -1,0 +1,3468 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#12141C">
+  <title>AgendaQuest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+  <style>
+/* AgendaQuest — estilos. Oscuro, estilo gamer sobrio, pensado primero para celular. */
+
+:root {
+  --fondo: #12141C;
+  --panel: #1C1F2B;
+  --panel-2: #262A3A;
+  --borde: #2A2E3F;
+  --borde-fuerte: #4A5068;
+  --texto: #F2EFE6;
+  --suave: #A7ABBD;
+  --tenue: #8A8FA3;
+  --lima: #C6F25B;
+  --lima-fondo: #232B1A;
+  --dorado: #FFB547;
+  --dorado-fondo: #2A2418;
+  --coral: #FF7A6B;
+  --verde: #7BE0A8;
+  --azul: #6EC5FF;
+  --azul-fondo: #1A2233;
+  --radio: 14px;
+  --pixel: 'Pixelify Sans', 'Courier New', monospace;
+  --sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.4;
+}
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
+h1:focus { outline: none; }
+img { max-width: 100%; }
+
+.solo-lectores { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- Estructura ---------- */
+.pantalla {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding: 16px 16px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.pantalla.con-nav { padding-bottom: 120px; }
+.pantalla.centrada { justify-content: center; }
+.pantalla.ancha { max-width: 1120px; }
+.espaciador { flex-grow: 1; }
+
+.barra { display: flex; align-items: center; gap: 10px; min-height: 48px; }
+.barra h1 { margin: 0; flex-grow: 1; }
+.barra-extra { display: flex; gap: 8px; align-items: center; margin-left: auto; }
+.saludo { flex-grow: 1; display: flex; flex-direction: column; min-width: 0; }
+.saludo h1 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.titulo-pixel { font-family: var(--pixel); font-weight: 700; font-size: 22px; letter-spacing: .3px; }
+.titulo-pixel.grande { font-size: 30px; }
+.titulo-pixel.azul { color: var(--azul); font-size: 18px; margin: 0; }
+.subtitulo { margin: 0; font-size: 20px; font-weight: 500; color: var(--suave); }
+.titulo-seccion { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--suave); }
+.titulo-chico { margin: 0 0 8px; font-size: 16px; font-weight: 700; }
+.titulo-detalle { margin: 4px 0 8px; font-size: 22px; }
+.texto-suave { color: var(--suave); margin: 0; }
+.texto-chico { font-size: 13px; color: var(--suave); }
+.texto-error { color: var(--coral); margin: 0; }
+.centro { text-align: center; }
+.ok { color: var(--verde); }
+.mal { color: var(--coral); }
+.alerta { color: var(--dorado); }
+.azul { color: var(--azul); }
+.dorado { color: var(--dorado); }
+.titulo-seccion.mal { color: var(--coral); }
+.titulo-seccion.alerta { color: var(--dorado); }
+.titulo-seccion.ok { color: var(--verde); }
+.titulo-seccion.azul { color: var(--azul); }
+
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo.chico .titulo-pixel { font-size: 20px; }
+
+.tarjeta { background: var(--panel); border-radius: 18px; padding: 16px; }
+.seccion { display: flex; flex-direction: column; gap: 8px; }
+.fila-entre { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.vacio { background: var(--panel); border: 2px dashed var(--borde); border-radius: 18px; padding: 20px; text-align: center; color: var(--suave); display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.vacio p { margin: 0; }
+
+/* ---------- Botones ---------- */
+.boton {
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: var(--radio);
+  border: 0;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  text-align: center;
+}
+.boton.chico { min-height: 44px; padding: 0 14px; font-size: 14px; }
+.boton.ancho { width: 100%; }
+.boton.primario { background: var(--lima); color: var(--fondo); }
+.boton.primario:hover { background: #D6FF74; }
+.boton.secundario { background: var(--panel-2); color: var(--texto); }
+.boton.secundario:hover { background: #30354A; }
+.boton.peligro { background: transparent; color: var(--coral); border: 1px solid #5A3434; }
+.boton.apagado { background: var(--panel-2); color: var(--suave); cursor: not-allowed; }
+.boton-icono {
+  width: 44px; height: 44px; flex-shrink: 0;
+  border-radius: 12px; border: 0;
+  background: var(--panel); color: var(--texto);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.boton-icono:hover { background: var(--panel-2); }
+.enlace { background: none; border: 0; color: var(--lima); text-decoration: underline; padding: 8px 0; font-size: 14px; }
+.boton-texto { background: none; border: 0; text-align: left; padding: 0; }
+.fila-botones { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.acciones { display: flex; flex-direction: column; gap: 10px; }
+
+.pastilla-monedas {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 44px; padding: 0 14px; border-radius: 22px; border: 0;
+  background: var(--dorado-fondo); color: var(--dorado); font-weight: 700;
+}
+.monedas { display: inline-flex; align-items: center; gap: 6px; color: var(--dorado); font-weight: 700; }
+.monedas-chico { display: inline-flex; align-items: center; gap: 4px; color: var(--dorado); font-weight: 700; font-size: 13px; }
+
+.fab {
+  position: fixed; right: max(16px, calc(50vw - 224px)); bottom: 92px;
+  width: 64px; height: 64px; border-radius: 20px; border: 0;
+  background: var(--lima); color: var(--fondo);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6px 18px rgba(0,0,0,.45);
+  z-index: 5;
+}
+
+.nav-inferior {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 6;
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+  max-width: 480px; margin: 0 auto;
+  background: #171923; border-top: 1px solid var(--borde);
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+}
+.nav-item {
+  min-height: 56px; border: 0; background: none; border-radius: 12px;
+  color: var(--tenue); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  font-size: 11px; font-weight: 500;
+}
+.nav-item.activo { color: var(--lima); background: var(--lima-fondo); }
+
+/* ---------- Perfiles ---------- */
+.grilla-perfiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.tarjeta-perfil {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 20px 10px 16px; border-radius: 20px;
+  background: var(--panel); border: 2px solid var(--borde);
+}
+.tarjeta-perfil:hover { border-color: var(--lima); }
+.nombre-perfil { font-family: var(--pixel); font-weight: 700; font-size: 20px; overflow-wrap: anywhere; text-align: center; }
+
+/* ---------- Mascota ---------- */
+.tarjeta-mascota {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px; border-radius: 20px;
+}
+.tarjeta-mascota.grande { flex-direction: column; text-align: center; padding: 20px 16px; }
+.tarjeta-mascota.grande .mascota-info { width: 100%; }
+.mascota-caja { position: relative; flex-shrink: 0; line-height: 0; }
+.mascota-info { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex-grow: 1; }
+.mascota-info .titulo-pixel { font-size: 18px; }
+.estado-mascota { font-size: 12px; font-weight: 700; }
+.mensaje-mascota { margin: 0; font-size: 14px; line-height: 1.35; }
+.tarjeta-mascota.grande .fila-entre { justify-content: center; gap: 12px; }
+.medidores { display: grid; grid-template-columns: 48px minmax(0, 1fr); align-items: center; gap: 4px 8px; font-size: 12px; color: var(--suave); text-align: left; }
+.barra-progreso { height: 8px; border-radius: 3px; background: #33384C; overflow: hidden; }
+.barra-progreso > div { height: 100%; border-radius: 3px; transition: width .4s; }
+
+@keyframes salto {
+  0% { transform: translateY(0); }
+  25% { transform: translateY(-16px); }
+  50% { transform: translateY(0); }
+  70% { transform: translateY(-7px); }
+  100% { transform: translateY(0); }
+}
+.salta .mascota-svg { animation: salto .7s ease-out 3; }
+.chispas { position: absolute; inset: 0; pointer-events: none; }
+.chispas i {
+  position: absolute; left: 50%; top: 40%; width: 6px; height: 6px;
+  background: var(--lima); animation: chispa .9s ease-out forwards;
+}
+.chispas i:nth-child(2n) { background: var(--dorado); }
+.chispas i:nth-child(3n) { background: var(--azul); }
+.chispas i:nth-child(1) { --dx: -48px; --dy: -40px; }
+.chispas i:nth-child(2) { --dx: 44px; --dy: -46px; }
+.chispas i:nth-child(3) { --dx: -56px; --dy: 4px; }
+.chispas i:nth-child(4) { --dx: 54px; --dy: 0px; }
+.chispas i:nth-child(5) { --dx: -20px; --dy: -60px; }
+.chispas i:nth-child(6) { --dx: 22px; --dy: -58px; }
+@keyframes chispa {
+  from { transform: translate(0, 0); opacity: 1; }
+  to { transform: translate(var(--dx), var(--dy)); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .salta .mascota-svg, .chispas i { animation: none; }
+  .chispas { display: none; }
+  .barra-progreso > div { transition: none; }
+}
+
+/* ---------- Tareas ---------- */
+.fila-tarea {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 10px 6px 4px; border-radius: var(--radio);
+  background: var(--panel); border: 1px solid var(--borde);
+}
+.fila-tarea.vencida { border-color: var(--coral); }
+.fila-tarea.enviada .fila-titulo { color: var(--suave); text-decoration: line-through; }
+.fila-tarea.hecha { opacity: .75; }
+.fila-cuerpo {
+  flex-grow: 1; min-width: 0; text-align: left;
+  display: flex; flex-direction: column; gap: 3px;
+  background: none; border: 0; padding: 8px 10px; border-radius: 10px;
+}
+button.fila-cuerpo:hover { background: rgba(255,255,255,.03); }
+.meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 12px; color: var(--suave); }
+.punto { display: inline-block; width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+.fila-titulo { font-size: 15px; font-weight: 500; overflow-wrap: anywhere; display: flex; align-items: center; gap: 6px; }
+.aviso-ok { font-size: 12px; color: var(--lima); }
+.aviso-nota { font-size: 13px; color: var(--dorado); }
+.chip-mini { font-size: 11px; padding: 2px 7px; border-radius: 6px; background: var(--panel-2); color: var(--suave); }
+.chip-mini.ok { color: var(--verde); }
+.casillero {
+  width: 44px; height: 44px; flex-shrink: 0; padding: 0;
+  border-radius: 12px; border: 2px solid var(--borde-fuerte); background: transparent;
+  display: flex; align-items: center; justify-content: center; color: var(--fondo);
+}
+.casillero:hover { border-color: var(--lima); }
+.casillero.marcado { background: var(--lima); border-color: var(--lima); }
+
+.tarjeta-examen {
+  display: flex; flex-direction: column; gap: 6px; text-align: left;
+  padding: 16px; border-radius: 16px; background: var(--azul-fondo); border: 1px solid #2C3D5C;
+}
+.etiqueta-azul { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--azul); }
+.segmentos { display: flex; gap: 6px; }
+.segmentos i { flex-grow: 1; height: 8px; border-radius: 2px; background: #33384C; }
+.segmentos i.lleno { background: var(--azul); }
+
+.fila-examen {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  padding: 10px 12px; border-radius: var(--radio); border: 1px solid var(--borde); background: var(--panel);
+  margin-bottom: 8px;
+}
+.fila-examen:hover { border-color: var(--azul); }
+.fila-examen-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.fecha-bloque { width: 44px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
+.fecha-bloque small { font-size: 11px; color: var(--suave); }
+.fecha-bloque b { font-family: var(--pixel); font-size: 22px; }
+
+.lista-plan { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.lista-plan li { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 12px; background: var(--fondo); font-size: 14px; }
+.lista-plan li span:nth-child(2) { flex-grow: 1; }
+.plan { background: var(--azul-fondo); border: 1px solid #2C3D5C; display: flex; flex-direction: column; gap: 10px; }
+.plan .texto-chico { color: #B9C3D6; margin: 0; }
+
+.detalle .datos { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; font-size: 15px; }
+.detalle dt { color: var(--suave); }
+.detalle dd { margin: 0; overflow-wrap: anywhere; }
+.foto-grande { display: block; margin-top: 14px; border-radius: 12px; max-height: 60vh; object-fit: contain; }
+
+/* ---------- Formularios ---------- */
+.formulario { display: flex; flex-direction: column; gap: 10px; }
+.formulario label, .formulario legend { font-size: 14px; font-weight: 700; }
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+legend { padding: 0; margin-bottom: 10px; }
+input[type=text], input[type=password], input[type=number], input[type=date], textarea {
+  width: 100%; min-height: 50px; padding: 10px 14px;
+  border-radius: var(--radio); border: 2px solid #33384C;
+  background: var(--panel); color: var(--texto); font-size: 16px;
+}
+input[type=date] { color-scheme: dark; }
+textarea { resize: vertical; }
+input:focus, textarea:focus { border-color: var(--lima); outline: none; }
+input::placeholder, textarea::placeholder { color: var(--tenue); }
+.fila-form { display: flex; gap: 8px; }
+.fila-form input { flex-grow: 1; }
+
+.grilla-chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+.fila-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { min-height: 40px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--borde); background: var(--panel); font-size: 14px; }
+.chip:hover { border-color: var(--lima); }
+.chip-radio { position: relative; }
+.chip-radio input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.chip-radio span {
+  min-height: 46px; padding: 0 10px; border-radius: 12px; border: 2px solid var(--borde);
+  background: var(--panel); font-size: 14px; font-weight: 500;
+  display: flex; align-items: center; gap: 8px;
+}
+.chip-radio input:checked + span { border-color: var(--lima); background: var(--lima-fondo); }
+.chip-radio input:focus-visible + span { outline: 3px solid var(--azul); outline-offset: 2px; }
+.chip-radio input:disabled + span { opacity: .6; }
+
+.fila-muestras { display: flex; flex-wrap: wrap; gap: 10px; }
+.muestra { position: relative; }
+.muestra input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.muestra > span { display: block; width: 44px; height: 44px; border-radius: 12px; border: 3px solid transparent; }
+.muestra input:checked + span { border-color: var(--texto); }
+.muestra input:focus-visible + span { outline: 3px solid var(--azul); outline-offset: 2px; }
+
+.aviso-monedas { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: var(--radio); background: var(--dorado-fondo); color: #FFD08A; font-size: 14px; }
+.foto-campo { display: flex; flex-direction: column; gap: 8px; }
+.foto-campo label.boton { font-size: 15px; }
+.foto-preview img { border-radius: 12px; max-height: 220px; display: block; }
+
+/* ---------- Listas ---------- */
+.lista-simple { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.lista-simple li { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--radio); background: var(--fondo); }
+.tarjeta .lista-simple li { background: var(--fondo); }
+.pantalla > .lista-simple li { background: var(--panel); }
+.lista-simple li.vencida { box-shadow: inset 0 0 0 1px var(--coral); }
+.lista-texto { flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.lista-texto small { font-size: 12px; color: var(--suave); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.cuadro-color { width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0; }
+.fila-premio { background: var(--panel) !important; }
+
+.lista-movs { list-style: none; margin: 0; padding: 0; }
+.lista-movs li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--borde); font-size: 14px; }
+.lista-movs li:last-child { border-bottom: 0; }
+.lista-movs small { display: block; color: var(--tenue); font-size: 12px; }
+.lista-reglas { margin: 0; padding-left: 20px; color: var(--suave); font-size: 14px; display: flex; flex-direction: column; gap: 4px; }
+
+.grilla-cosmeticos { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; margin-bottom: 12px; }
+.cosmetico { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 6px; border-radius: var(--radio); background: var(--panel); text-align: center; }
+.muestra-fondo { width: 48px; height: 48px; border-radius: 10px; display: block; border: 1px solid var(--borde); }
+
+/* ---------- Panel del padre ---------- */
+.padre-barra { flex-wrap: wrap; }
+.pestanas { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
+.pestana {
+  min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--borde);
+  background: var(--panel); font-weight: 700; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+}
+.pestana.activa { background: var(--lima-fondo); border-color: var(--lima); }
+.burbuja { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; background: var(--lima); color: var(--fondo); font-size: 12px; display: inline-flex; align-items: center; justify-content: center; }
+.revision { display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.revision > div:first-child { flex: 1 1 320px; }
+.revision p { margin: 0; }
+.revision-accion { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.kpi { background: var(--panel); border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; }
+.kpi-valor { font-family: var(--pixel); font-size: 30px; line-height: 1.1; }
+.columnas { display: grid; grid-template-columns: 1fr; gap: 16px; }
+.columna { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.item-aprobar { display: flex; flex-direction: column; gap: 8px; padding: 8px 10px 12px; border-radius: var(--radio); background: var(--fondo); margin-bottom: 8px; }
+.item-aprobar .fila-cuerpo { padding: 6px 4px; }
+.form-devolver { display: flex; flex-direction: column; gap: 8px; }
+.form-devolver label { font-size: 13px; font-weight: 700; }
+.fila-barra { display: grid; grid-template-columns: 100px minmax(0, 1fr) 44px 40px; align-items: center; gap: 10px; font-size: 14px; margin-bottom: 8px; }
+.fila-barra span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fila-barra b { text-align: right; }
+.fila-barra small { color: var(--tenue); }
+
+@media (min-width: 760px) {
+  .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .columnas { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+  .pantalla.ancha { padding: 24px 32px 40px; }
+}
+
+/* ---------- Vida y comida ---------- */
+.vida { display: inline-flex; gap: 3px; align-items: center; }
+.vida.chica { gap: 2px; }
+.fila-comida { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 4px; }
+.tarjeta-mascota.grande .fila-comida { justify-content: center; }
+.boton-comida { min-height: 40px; }
+
+/* ---------- Pomodoro ---------- */
+select {
+  width: 100%; min-height: 50px; padding: 10px 14px;
+  border-radius: var(--radio); border: 2px solid #33384C;
+  background: var(--panel); color: var(--texto); font-size: 16px;
+}
+select:focus { border-color: var(--lima); outline: none; }
+.grilla-tiempos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.grilla-tiempos.tres { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.chip-tiempo span { justify-content: center; min-height: 56px; font-size: 14px; }
+.chip-tiempo b { font-family: var(--pixel); font-size: 22px; }
+.boton.grande { min-height: 58px; font-size: 18px; }
+
+.reloj-pomodoro { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.fase-pomodoro { margin: 0; font-family: var(--pixel); font-size: 22px; font-weight: 700; text-align: center; }
+.anillo { position: relative; width: min(280px, 78vw); aspect-ratio: 1; max-width: 100%; }
+.anillo svg { width: 100%; height: 100%; display: block; }
+.anillo-centro { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.tiempo-grande { font-family: var(--pixel); font-size: clamp(52px, 17vw, 72px); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+.fase-descanso .tiempo-grande { color: var(--azul); }
+.tarea-pomodoro { margin: 0; display: flex; align-items: center; gap: 8px; font-weight: 500; text-align: center; }
+.consejo { margin: 0; padding: 12px 14px; border-radius: var(--radio); background: var(--panel); color: var(--suave); font-size: 14px; text-align: center; max-width: 360px; }
+.pomodoro-pantalla .acciones { max-width: 360px; width: 100%; margin: 0 auto; }
+
+.pomo-barra {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 15;
+  padding: calc(6px + env(safe-area-inset-top, 0px)) 12px 6px;
+  background: rgba(18, 20, 28, .94); border-bottom: 1px solid var(--borde);
+  backdrop-filter: blur(6px);
+}
+.pomo-barra-boton {
+  width: 100%; max-width: 480px; margin: 0 auto; min-height: 44px;
+  display: flex; align-items: center; gap: 10px; padding: 0 14px;
+  border-radius: 12px; border: 1px solid #3A4A22; background: var(--lima-fondo); color: var(--texto);
+  font-weight: 700;
+}
+.pomo-barra-boton.fase-descanso, .pomo-barra-boton.fase-listo { border-color: #2C3D5C; background: var(--azul-fondo); }
+.pomo-punto { width: 10px; height: 10px; border-radius: 2px; background: var(--lima); flex-shrink: 0; }
+.fase-descanso .pomo-punto, .fase-listo .pomo-punto { background: var(--azul); }
+.pomo-etiqueta { flex-grow: 1; text-align: left; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pomo-barra-tiempo { font-family: var(--pixel); font-size: 22px; font-variant-numeric: tabular-nums; }
+.pomo-ver { font-size: 13px; color: var(--lima); }
+body.con-barra-pomo { padding-top: calc(58px + env(safe-area-inset-top, 0px)); }
+body.con-barra-pomo .zona-avisos { top: calc(66px + env(safe-area-inset-top, 0px)); }
+.dos-datos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 8px; }
+.dos-datos > div { display: flex; flex-direction: column; }
+
+/* ---------- Diálogo ---------- */
+.fondo-dialogo {
+  position: fixed; inset: 0; z-index: 30;
+  background: rgba(6, 7, 12, .72);
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.dialogo {
+  width: min(420px, 100%); max-height: calc(100vh - 32px); overflow: auto;
+  background: var(--panel); border: 1px solid var(--borde); border-radius: 20px;
+  padding: 20px; display: flex; flex-direction: column; gap: 12px;
+  box-shadow: 0 16px 40px rgba(0,0,0,.5);
+}
+.dialogo p { margin: 0; }
+.dialogo textarea { font-family: ui-monospace, 'Courier New', monospace; font-size: 12px; }
+.dialogo input[aria-invalid="true"] { border-color: var(--coral); }
+.boton.peligro-lleno { background: var(--coral); color: var(--fondo); }
+
+/* ---------- Avisos ---------- */
+.zona-avisos {
+  position: fixed; left: 50%; top: 12px; transform: translateX(-50%);
+  width: min(440px, calc(100vw - 24px)); z-index: 20;
+  display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+}
+.aviso {
+  padding: 12px 16px; border-radius: 14px; background: #2D3246; color: var(--texto);
+  box-shadow: 0 8px 24px rgba(0,0,0,.4); font-size: 15px; font-weight: 500;
+  transition: opacity .35s, transform .35s;
+}
+.aviso.ok { background: #2B3A1E; color: #E3FFB0; }
+.aviso.error { background: #4A2323; color: #FFD2CC; }
+.aviso.saliendo { opacity: 0; transform: translateY(-8px); }
+@media (prefers-reduced-motion: reduce) { .aviso { transition: none; } }
+
+</style>
+</head>
+<body>
+  <div id="app" aria-live="off"></div>
+  <div id="avisos" class="zona-avisos"></div>
+  <div id="dialogo"></div>
+  <div id="pomo-barra" class="pomo-barra" hidden></div>
+  <noscript>AgendaQuest necesita JavaScript activado.</noscript>
+
+  <!-- Orden de carga: utilidades → datos → reglas → modelo → dibujo → vistas → controlador -->
+  <script>
+/* js/util.js */
+/*
+ * util.js — Funciones auxiliares sin estado: fechas, ids, escape de HTML y hash del PIN.
+ * Todas las fechas de la app se guardan como texto 'AAAA-MM-DD' en hora local,
+ * así no hay problemas de zona horaria al comparar "hoy", "mañana" o "vencida".
+ */
+(function (AQ) {
+  'use strict';
+
+  const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+  const DIAS_CORTO = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
+  const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
+    'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+  class Fecha {
+    /** Fecha local de hoy como 'AAAA-MM-DD'. Se puede fijar para pruebas con Fecha.fijar(). */
+    static hoy() {
+      if (Fecha._fija) return Fecha._fija;
+      return Fecha.aTexto(new Date());
+    }
+
+    static fijar(texto) { Fecha._fija = texto || null; }
+
+    static aTexto(d) {
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const dia = String(d.getDate()).padStart(2, '0');
+      return d.getFullYear() + '-' + m + '-' + dia;
+    }
+
+    static aDate(texto) {
+      const [a, m, d] = texto.split('-').map(Number);
+      return new Date(a, m - 1, d, 12, 0, 0);
+    }
+
+    static sumarDias(texto, n) {
+      const d = Fecha.aDate(texto);
+      d.setDate(d.getDate() + n);
+      return Fecha.aTexto(d);
+    }
+
+    /** Días entre dos fechas (b - a). */
+    static diferencia(a, b) {
+      return Math.round((Fecha.aDate(b) - Fecha.aDate(a)) / 86400000);
+    }
+
+    /** Lunes de la semana de esa fecha. */
+    static lunes(texto) {
+      const d = Fecha.aDate(texto);
+      const dow = (d.getDay() + 6) % 7; // 0 = lunes
+      return Fecha.sumarDias(texto, -dow);
+    }
+
+    static esValida(texto) {
+      return /^\d{4}-\d{2}-\d{2}$/.test(texto || '') && !isNaN(Fecha.aDate(texto));
+    }
+
+    static diaSemana(texto) { return DIAS[Fecha.aDate(texto).getDay()]; }
+    static diaCorto(texto) { return DIAS_CORTO[Fecha.aDate(texto).getDay()]; }
+    static numeroDia(texto) { return Fecha.aDate(texto).getDate(); }
+
+    /** "lunes 28 de septiembre" */
+    static larga(texto) {
+      const d = Fecha.aDate(texto);
+      return DIAS[d.getDay()] + ' ' + d.getDate() + ' de ' + MESES[d.getMonth()];
+    }
+
+    /** Texto relativo corto: "hoy", "mañana", "ayer", "jueves 1", "hace 3 días". */
+    static relativa(texto) {
+      const n = Fecha.diferencia(Fecha.hoy(), texto);
+      if (n === 0) return 'hoy';
+      if (n === 1) return 'mañana';
+      if (n === -1) return 'ayer';
+      if (n > 1 && n < 7) return DIAS[Fecha.aDate(texto).getDay()] + ' ' + Fecha.numeroDia(texto);
+      if (n < -1) return 'hace ' + (-n) + ' días';
+      const d = Fecha.aDate(texto);
+      return d.getDate() + ' de ' + MESES[d.getMonth()];
+    }
+
+    static nombreMes(texto) { return MESES[Fecha.aDate(texto).getMonth()]; }
+  }
+
+  function nuevoId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  /** Escapa texto del usuario antes de meterlo en HTML. Nunca se inserta texto sin pasar por acá. */
+  function esc(valor) {
+    return String(valor == null ? '' : valor)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  /**
+   * Hash simple (FNV-1a) para no guardar el PIN a la vista.
+   * Ojo: es un candado para chicos, no seguridad real; quien sepa abrir las
+   * herramientas del navegador puede cambiar los datos igual.
+   */
+  function hashPin(pin) {
+    let h = 0x811c9dc5;
+    const texto = 'agendaquest:' + pin;
+    for (let i = 0; i < texto.length; i++) {
+      h ^= texto.charCodeAt(i);
+      h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    return h.toString(16);
+  }
+
+  function limitar(n, min, max) { return Math.max(min, Math.min(max, n)); }
+
+  AQ.Fecha = Fecha;
+  AQ.util = { nuevoId, esc, hashPin, limitar };
+})(globalThis.AQ = globalThis.AQ || {});
+
+</script>
+  <script>
+/* js/repository.js */
+/*
+ * repository.js — Capa de acceso a datos (patrón Repository).
+ *
+ * El resto de la app solo conoce la "interfaz": cargar() y guardar(estado).
+ * Fase 1 usa LocalStorageRepository (datos en este navegador).
+ * En la fase 2 se escribe, por ejemplo, un SupabaseRepository con los mismos
+ * dos métodos y se cambia una sola línea en app.js, sin tocar pantallas ni reglas.
+ */
+(function (AQ) {
+  'use strict';
+
+  const VERSION_DATOS = 1;
+
+  function estadoVacio() {
+    return {
+      version: VERSION_DATOS,
+      pinHash: null,
+      perfiles: [],
+      materias: [],
+      tareas: [],
+      examenes: [],
+      movimientos: [],
+      pomodoros: [],
+      premios: [],
+      canjes: []
+    };
+  }
+
+  /** "Interfaz" base: documenta el contrato que cumple cualquier repositorio. */
+  class Repositorio {
+    /** @returns {object} el estado completo de la app */
+    cargar() { throw new Error('cargar() no implementado'); }
+    /** @param {object} estado */
+    guardar(estado) { throw new Error('guardar() no implementado'); }
+  }
+
+  class LocalStorageRepository extends Repositorio {
+    constructor(clave, almacenamiento) {
+      super();
+      this.clave = clave || 'agendaquest.v1';
+      this.almacenamiento = almacenamiento || globalThis.localStorage;
+    }
+
+    cargar() {
+      let texto = null;
+      try {
+        texto = this.almacenamiento.getItem(this.clave);
+      } catch (e) {
+        throw new ErrorAlmacenamiento('El navegador no deja guardar datos (¿ventana privada?).');
+      }
+      if (!texto) return estadoVacio();
+      try {
+        return Repositorio.normalizar(JSON.parse(texto));
+      } catch (e) {
+        throw new ErrorAlmacenamiento('Los datos guardados están dañados. Podés importar una copia de seguridad.');
+      }
+    }
+
+    guardar(estado) {
+      try {
+        this.almacenamiento.setItem(this.clave, JSON.stringify(estado));
+      } catch (e) {
+        throw new ErrorAlmacenamiento('No hay más espacio para guardar. Borrá fotos viejas desde el panel del padre.');
+      }
+    }
+  }
+
+  /** Repositorio en memoria: útil para pruebas. */
+  class MemoryRepository extends Repositorio {
+    constructor(inicial) { super(); this.estado = inicial || estadoVacio(); }
+    cargar() { return JSON.parse(JSON.stringify(this.estado)); }
+    guardar(estado) { this.estado = JSON.parse(JSON.stringify(estado)); }
+  }
+
+  class ErrorAlmacenamiento extends Error {}
+
+  /** Completa campos faltantes para que datos viejos o importados no rompan la app. */
+  Repositorio.normalizar = function (datos) {
+    if (!datos || typeof datos !== 'object') throw new Error('Formato inválido');
+    const base = estadoVacio();
+    for (const clave of Object.keys(base)) {
+      if (Array.isArray(base[clave]) && !Array.isArray(datos[clave])) datos[clave] = [];
+    }
+    if (!('pinHash' in datos)) datos.pinHash = null;
+    datos.version = VERSION_DATOS;
+    for (const p of datos.perfiles) {
+      p.mascota = Object.assign({ nombre: 'Brote', color: 'lima', fondo: 'ninguno', colores: ['lima'], fondos: ['ninguno'] }, p.mascota || {});
+      p.bonosSemana = Array.isArray(p.bonosSemana) ? p.bonosSemana : [];
+      p.revision = Object.assign({ ultima: null, racha: 0 }, p.revision || {});
+      p.vida = Object.assign({ valor: 5, revisadoHasta: null, comioEl: null, vacaciones: false }, p.vida || {});
+    }
+    return datos;
+  };
+
+  AQ.estadoVacio = estadoVacio;
+  AQ.Repositorio = Repositorio;
+  AQ.LocalStorageRepository = LocalStorageRepository;
+  AQ.MemoryRepository = MemoryRepository;
+  AQ.ErrorAlmacenamiento = ErrorAlmacenamiento;
+})(globalThis.AQ = globalThis.AQ || {});
+
+</script>
+  <script>
+/* js/rules.js */
+/*
+ * rules.js — Reglas del juego, separadas de los datos y de las pantallas.
+ * Si querés ajustar cuántas monedas da cada cosa, se cambia acá y nada más.
+ */
+(function (AQ) {
+  'use strict';
+
+  const { Fecha, util } = AQ;
+
+  const MONEDAS = Object.freeze({
+    ANOTAR: 5,            // el estudiante anota una tarea
+    A_TIEMPO: 15,         // aprobada, marcada como hecha antes o el día del vencimiento
+    TARDE: 5,             // aprobada, pero terminada después del vencimiento
+    SESION: 10,           // sesión de estudio de examen aprobada
+    RACHA_REVISION: 20,   // 5 días seguidos de revisión diaria con el padre
+    SEMANA_LIMPIA: 30,    // una semana sin tareas vencidas
+    POMODORO_POR_5_MIN: 1, // pomodoro completo: 1 moneda cada 5 minutos de foco (15 min = 3, 30 min = 6)
+    TOPE_POMODORO_DIA: 30  // máximo de monedas por pomodoros en un día (evita dejar el reloj corriendo solo)
+  });
+
+  const XP_POR_NIVEL = 100;
+
+  /** Vida de la mascota: 5 segmentos. Come una vez por día; cada día sin comer pierde 1. */
+  const VIDA = Object.freeze({
+    MAX: 5,
+    COSTO_COMIDA: 5,  // monedas por comida
+    DEBIL: 2          // con 2 segmentos o menos está débil
+  });
+
+  const COLORES_MATERIA = ['#6EC5FF', '#FF9ECF', '#F7A35C', '#7BE0A8', '#B79CFF', '#E8E07A', '#FF7A6B', '#5EE0D8', '#C6F25B', '#D9A6FF'];
+
+  /** Cosméticos de la mascota: colores del cuerpo y fondos de la tarjeta. */
+  const COSMETICOS = Object.freeze({
+    colores: [
+      { id: 'lima', nombre: 'Lima', precio: 0, cuerpo: '#C6F25B', triste: '#A3B56B' },
+      { id: 'celeste', nombre: 'Celeste', precio: 80, cuerpo: '#7FD4FF', triste: '#7FA3B8' },
+      { id: 'rosa', nombre: 'Rosa chicle', precio: 80, cuerpo: '#FF9ECF', triste: '#B88AA2' },
+      { id: 'lava', nombre: 'Lava', precio: 150, cuerpo: '#FF8A5B', triste: '#B87F66' },
+      { id: 'oro', nombre: 'Dorado', precio: 300, cuerpo: '#FFD35C', triste: '#B8A366' }
+    ],
+    fondos: [
+      { id: 'ninguno', nombre: 'Liso', precio: 0, css: '#1C1F2B' },
+      { id: 'noche', nombre: 'Noche estrellada', precio: 120, css: 'radial-gradient(circle at 80% 20%, #3B4A7A 0 6%, transparent 7%), #1A2233' },
+      { id: 'pasto', nombre: 'Pasto', precio: 120, css: 'linear-gradient(#1C2B22 70%, #2F5A34 70%)' },
+      { id: 'atardecer', nombre: 'Atardecer', precio: 200, css: 'linear-gradient(#3A2340, #6B3A3A 70%, #2A1E2A 70%)' }
+    ]
+  });
+
+  function color(id) { return COSMETICOS.colores.find((c) => c.id === id) || COSMETICOS.colores[0]; }
+  function fondo(id) { return COSMETICOS.fondos.find((f) => f.id === id) || COSMETICOS.fondos[0]; }
+
+  function nivelDesdeXp(xp) { return 1 + Math.floor(xp / XP_POR_NIVEL); }
+
+  /** Etapa de la mascota: huevo hasta anotar la primera tarea; después según el nivel. */
+  function etapa(nivel, tieneTareas) {
+    if (!tieneTareas) return 'huevo';
+    if (nivel <= 3) return 'bebe';
+    if (nivel <= 7) return 'joven';
+    return 'adulto';
+  }
+
+  const NOMBRE_ETAPA = { huevo: 'Huevo', bebe: 'Bebé', joven: 'Joven', adulto: 'Adulta' };
+  const PROXIMA_ETAPA = { bebe: { nivel: 4, nombre: 'joven' }, joven: { nivel: 8, nombre: 'adulta' } };
+
+  /**
+   * Plan de estudio para un examen (patrón Strategy: se puede reemplazar por otro plan).
+   * Reparte hasta 4 sesiones en los 5 días previos al examen, sin usar días pasados.
+   * Basado en la evidencia de práctica distribuida y autoevaluación (Dunlosky y otros, 2013).
+   */
+  class PlanEspaciado {
+    constructor() {
+      this.tipos = [
+        'Repasar la teoría y hacer un resumen',
+        'Ejercicios de práctica',
+        'Autoevaluación: responder preguntas sin mirar',
+        'Repasar solo lo que salió mal'
+      ];
+    }
+
+    generar(fechaExamen, hoy) {
+      const disponibles = [];
+      for (let i = 5; i >= 1; i--) {
+        const dia = Fecha.sumarDias(fechaExamen, -i);
+        if (Fecha.diferencia(hoy, dia) >= 0) disponibles.push(dia);
+      }
+      const d = disponibles.length;
+      const n = Math.min(4, d);
+      if (n === 0) return [];
+      let indices;
+      if (d === 5) indices = [0, 1, 3, 4];
+      else if (n === 1) indices = [d - 1];
+      else indices = Array.from({ length: n }, (_, i) => Math.round(i * (d - 1) / (n - 1)));
+      const tiposPorCantidad = {
+        1: [this.tipos[2]],
+        2: [this.tipos[0], this.tipos[2]],
+        3: [this.tipos[0], this.tipos[1], this.tipos[2]],
+        4: this.tipos
+      };
+      return indices.map((idx, i) => ({ fecha: disponibles[idx], titulo: tiposPorCantidad[n][i] }));
+    }
+  }
+
+  /**
+   * Estado de la mascota, por prioridad:
+   * débil (poca vida) > triste (tareas vencidas) > con hambre (no comió hoy) > preocupada (algo para hoy o mañana) > tranquila.
+   * Nunca se muere: con la vida en 0 queda desmayada y se recupera comiendo.
+   */
+  function estadoMascota(resumen) {
+    let estado = 'tranquilo';
+    if (resumen.vida <= VIDA.DEBIL) estado = 'debil';
+    else if (resumen.vencidas > 0) estado = 'triste';
+    else if (!resumen.comioHoy && !resumen.vacaciones) estado = 'hambriento';
+    else if (resumen.urgentes > 0) estado = 'preocupado';
+    const animo = util.limitar(45 + 10 * resumen.sesionesSemana + 3 * (resumen.pomodorosSemana || 0) + 4 * resumen.rachaRevision - 20 * resumen.vencidas, 8, 100);
+    return { estado, animo };
+  }
+
+  const TEXTO_ESTADO = {
+    feliz: { nombre: '¡Ñam!', color: '#C6F25B' },
+    tranquilo: { nombre: 'Panza llena', color: '#7BE0A8' },
+    preocupado: { nombre: 'Preocupada', color: '#FFB547' },
+    hambriento: { nombre: 'Con hambre', color: '#FFB547' },
+    triste: { nombre: 'Triste', color: '#FF7A6B' },
+    debil: { nombre: 'Débil', color: '#FF7A6B' }
+  };
+
+  function mensajeMascota(estado, resumen, nombreMascota) {
+    switch (estado) {
+      case 'feliz': return '¡Bien ahí! Cuando tu papá la apruebe, sumás monedas.';
+      case 'debil':
+        if (resumen.vida === 0) return 'Me quedé sin fuerzas. Cada comida me devuelve 1 de vida.';
+        return resumen.saldo >= VIDA.COSTO_COMIDA
+          ? 'Estoy débil. Necesito comer todos los días para recuperarme.'
+          : 'Estoy débil y no hay monedas para comida. Terminá una tarea y dame de comer.';
+      case 'triste':
+        return resumen.vencidas === 1
+          ? 'Hay una tarea vencida. Si la terminás, me pongo contento.'
+          : 'Hay ' + resumen.vencidas + ' tareas vencidas. Si las terminás, me pongo contento.';
+      case 'hambriento':
+        return resumen.saldo >= VIDA.COSTO_COMIDA
+          ? 'Tengo hambre. ¿Me das de comer? Si hoy no como, pierdo 1 de vida.'
+          : 'Tengo hambre y no alcanzan las monedas. Terminá una tarea para conseguir comida.';
+      case 'preocupado':
+        return resumen.urgentes === 1
+          ? 'Hay 1 cosa para hoy o mañana. ¿La hacemos?'
+          : 'Hay ' + resumen.urgentes + ' cosas para hoy o mañana. ¿Arrancamos por una?';
+      default:
+        return resumen.pendientes === 0 ? 'Panza llena y todo al día. ¡Crack!' : 'Panza llena. Todo bajo control.';
+    }
+  }
+
+  AQ.reglas = {
+    MONEDAS, XP_POR_NIVEL, VIDA, COLORES_MATERIA, COSMETICOS, NOMBRE_ETAPA, PROXIMA_ETAPA, TEXTO_ESTADO,
+    color, fondo, nivelDesdeXp, etapa, estadoMascota, mensajeMascota
+  };
+  AQ.PlanEspaciado = PlanEspaciado;
+})(globalThis.AQ = globalThis.AQ || {});
+
+</script>
+  <script>
+/* js/store.js */
+/*
+ * store.js — El "modelo" de la app: todas las operaciones sobre los datos.
+ *
+ * - Las pantallas nunca modifican el estado directamente: llaman a métodos del Store.
+ * - Cada operación pasa por _confirmar(), que guarda con el repositorio y avisa
+ *   a los suscriptores (patrón Observer) para que la pantalla se vuelva a dibujar.
+ * - Si guardar falla (por ejemplo, sin espacio), el cambio se deshace.
+ */
+(function (AQ) {
+  'use strict';
+
+  const { Fecha, util, reglas } = AQ;
+  const M = reglas.MONEDAS;
+
+  class ErrorValidacion extends Error {}
+
+  function exigir(condicion, mensaje) {
+    if (!condicion) throw new ErrorValidacion(mensaje);
+  }
+
+  function textoLimpio(valor, max) {
+    return String(valor == null ? '' : valor).trim().slice(0, max || 200);
+  }
+
+  class Store {
+    constructor(repositorio, plan) {
+      this.repo = repositorio;
+      this.plan = plan || new AQ.PlanEspaciado();
+      this.estado = repositorio.cargar();
+      this.suscriptores = [];
+    }
+
+    // ---------- Observer ----------
+    suscribir(fn) { this.suscriptores.push(fn); }
+    _avisar(evento) { this.suscriptores.forEach((fn) => fn(evento)); }
+
+    _confirmar(evento, mutacion) {
+      const copia = JSON.stringify(this.estado);
+      let resultado;
+      try {
+        resultado = mutacion();
+        this.repo.guardar(this.estado);
+      } catch (e) {
+        this.estado = JSON.parse(copia);
+        throw e;
+      }
+      this._avisar(evento);
+      return resultado;
+    }
+
+    _movimiento(perfilId, cantidad, motivo, ref, tipo) {
+      this.estado.movimientos.push({
+        id: util.nuevoId(), perfilId, cantidad, motivo, ref: ref || null, tipo: tipo || 'otro', fecha: Fecha.hoy()
+      });
+    }
+
+    // ---------- PIN del padre ----------
+    tienePin() { return !!this.estado.pinHash; }
+
+    configurarPin(pin) {
+      exigir(/^\d{4}$/.test(pin), 'El PIN tiene que ser de 4 números.');
+      return this._confirmar('pin', () => { this.estado.pinHash = util.hashPin(pin); });
+    }
+
+    verificarPin(pin) { return !!this.estado.pinHash && util.hashPin(pin) === this.estado.pinHash; }
+
+    cambiarPin(actual, nuevo) {
+      exigir(this.verificarPin(actual), 'El PIN actual no es correcto.');
+      return this.configurarPin(nuevo);
+    }
+
+    // ---------- Perfiles ----------
+    get perfiles() { return this.estado.perfiles; }
+    perfil(id) { return this.estado.perfiles.find((p) => p.id === id) || null; }
+
+    agregarPerfil(datos) {
+      const nombre = textoLimpio(datos.nombre, 40);
+      exigir(nombre, 'Poné el nombre del estudiante.');
+      return this._confirmar('perfiles', () => {
+        const p = {
+          id: util.nuevoId(),
+          nombre,
+          anio: textoLimpio(datos.anio, 20),
+          creado: Fecha.hoy(),
+          mascota: { nombre: textoLimpio(datos.mascota, 20) || 'Brote', color: 'lima', fondo: 'ninguno', colores: ['lima'], fondos: ['ninguno'] },
+          bonosSemana: [],
+          revision: { ultima: null, racha: 0 },
+          vida: { valor: reglas.VIDA.MAX, revisadoHasta: Fecha.sumarDias(Fecha.hoy(), -1), comioEl: null, vacaciones: false }
+        };
+        this.estado.perfiles.push(p);
+        return p;
+      });
+    }
+
+    editarPerfil(id, datos) {
+      const p = this.perfil(id);
+      exigir(p, 'Perfil no encontrado.');
+      const nombre = textoLimpio(datos.nombre, 40);
+      exigir(nombre, 'Poné el nombre del estudiante.');
+      return this._confirmar('perfiles', () => {
+        p.nombre = nombre;
+        p.anio = textoLimpio(datos.anio, 20);
+        if (datos.mascota != null) p.mascota.nombre = textoLimpio(datos.mascota, 20) || p.mascota.nombre;
+      });
+    }
+
+    eliminarPerfil(id) {
+      return this._confirmar('perfiles', () => {
+        const e = this.estado;
+        e.perfiles = e.perfiles.filter((p) => p.id !== id);
+        ['materias', 'tareas', 'examenes', 'movimientos', 'canjes', 'pomodoros'].forEach((k) => {
+          e[k] = e[k].filter((x) => x.perfilId !== id);
+        });
+      });
+    }
+
+    // ---------- Materias ----------
+    materiasDe(perfilId) {
+      return this.estado.materias.filter((m) => m.perfilId === perfilId)
+        .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+    }
+    materia(id) { return this.estado.materias.find((m) => m.id === id) || null; }
+
+    agregarMateria(perfilId, datos) {
+      const nombre = textoLimpio(datos.nombre, 30);
+      exigir(nombre, 'Poné el nombre de la materia.');
+      exigir(!this.materiasDe(perfilId).some((m) => m.nombre.toLowerCase() === nombre.toLowerCase()), 'Ya tenés una materia con ese nombre.');
+      return this._confirmar('materias', () => {
+        const usadas = this.materiasDe(perfilId).length;
+        const m = {
+          id: util.nuevoId(), perfilId, nombre,
+          color: datos.color || reglas.COLORES_MATERIA[usadas % reglas.COLORES_MATERIA.length],
+          profesor: textoLimpio(datos.profesor, 40)
+        };
+        this.estado.materias.push(m);
+        return m;
+      });
+    }
+
+    editarMateria(id, datos) {
+      const m = this.materia(id);
+      exigir(m, 'Materia no encontrada.');
+      const nombre = textoLimpio(datos.nombre, 30);
+      exigir(nombre, 'Poné el nombre de la materia.');
+      return this._confirmar('materias', () => {
+        m.nombre = nombre;
+        m.color = datos.color || m.color;
+        m.profesor = textoLimpio(datos.profesor, 40);
+      });
+    }
+
+    eliminarMateria(id) {
+      const usada = this.estado.tareas.some((t) => t.materiaId === id && t.estado !== 'aprobada')
+        || this.estado.examenes.some((x) => x.materiaId === id && Fecha.diferencia(Fecha.hoy(), x.fecha) >= 0);
+      exigir(!usada, 'Esta materia tiene tareas o exámenes pendientes. Terminalos o borralos primero.');
+      return this._confirmar('materias', () => {
+        this.estado.materias = this.estado.materias.filter((m) => m.id !== id);
+      });
+    }
+
+    // ---------- Tareas ----------
+    tarea(id) { return this.estado.tareas.find((t) => t.id === id) || null; }
+    tareasDe(perfilId) { return this.estado.tareas.filter((t) => t.perfilId === perfilId); }
+
+    agregarTarea(perfilId, datos, porPadre) {
+      const titulo = textoLimpio(datos.titulo, 120);
+      exigir(this.perfil(perfilId), 'Perfil no encontrado.');
+      exigir(this.materia(datos.materiaId), 'Elegí una materia.');
+      exigir(titulo, 'Escribí qué hay que hacer.');
+      exigir(Fecha.esValida(datos.vence), 'Elegí la fecha de entrega.');
+      return this._confirmar('tareas', () => {
+        const t = {
+          id: util.nuevoId(), perfilId, tipo: 'tarea',
+          materiaId: datos.materiaId, titulo,
+          detalle: textoLimpio(datos.detalle, 500),
+          vence: datos.vence, creada: Fecha.hoy(),
+          creadaPor: porPadre ? 'padre' : 'estudiante',
+          estado: 'pendiente', enviadaEl: null, aprobadaEl: null, nota: '',
+          foto: datos.foto || null, examenId: null
+        };
+        const nace = this.tareasDe(perfilId).length === 0;
+        this.estado.tareas.push(t);
+        if (nace) {
+          // La mascota nace con vida completa; el hambre empieza a contar desde mañana.
+          const p = this.perfil(perfilId);
+          p.vida.valor = reglas.VIDA.MAX;
+          p.vida.revisadoHasta = Fecha.hoy();
+        }
+        if (!porPadre) this._movimiento(perfilId, M.ANOTAR, 'Anotaste: ' + titulo, t.id, 'anotar');
+        return t;
+      });
+    }
+
+    editarTarea(id, datos) {
+      const t = this.tarea(id);
+      exigir(t, 'Tarea no encontrada.');
+      exigir(t.estado !== 'aprobada', 'Una tarea aprobada ya no se puede cambiar.');
+      if (datos.vence != null) exigir(Fecha.esValida(datos.vence), 'Fecha inválida.');
+      if (datos.titulo != null) exigir(textoLimpio(datos.titulo), 'Escribí qué hay que hacer.');
+      return this._confirmar('tareas', () => {
+        if (datos.titulo != null) t.titulo = textoLimpio(datos.titulo, 120);
+        if (datos.detalle != null) t.detalle = textoLimpio(datos.detalle, 500);
+        if (datos.vence != null) t.vence = datos.vence;
+        if (datos.materiaId && this.materia(datos.materiaId) && t.tipo === 'tarea') t.materiaId = datos.materiaId;
+        if ('foto' in datos) t.foto = datos.foto;
+      });
+    }
+
+    marcarHecha(id) {
+      const t = this.tarea(id);
+      exigir(t && t.estado === 'pendiente', 'Esta tarea no está pendiente.');
+      return this._confirmar('tareas', () => {
+        t.estado = 'enviada';
+        t.enviadaEl = Fecha.hoy();
+        t.nota = '';
+      });
+    }
+
+    desmarcar(id) {
+      const t = this.tarea(id);
+      exigir(t && t.estado === 'enviada', 'Esta tarea no está esperando aprobación.');
+      return this._confirmar('tareas', () => {
+        t.estado = 'pendiente';
+        t.enviadaEl = null;
+      });
+    }
+
+    /** El padre aprueba: recién ahí se acreditan las monedas. */
+    aprobar(id) {
+      const t = this.tarea(id);
+      exigir(t && t.estado === 'enviada', 'Esta tarea no está esperando aprobación.');
+      return this._confirmar('tareas', () => {
+        let cantidad, motivo;
+        if (t.tipo === 'sesion') {
+          cantidad = M.SESION; motivo = 'Sesión de estudio: ' + t.titulo;
+        } else if (Fecha.diferencia(t.enviadaEl, t.vence) >= 0) {
+          cantidad = M.A_TIEMPO; motivo = 'A tiempo: ' + t.titulo;
+        } else {
+          cantidad = M.TARDE; motivo = 'Terminada tarde: ' + t.titulo;
+        }
+        t.estado = 'aprobada';
+        t.aprobadaEl = Fecha.hoy();
+        this._movimiento(t.perfilId, cantidad, motivo, t.id, 'aprobacion');
+        return cantidad;
+      });
+    }
+
+    devolver(id, nota) {
+      const t = this.tarea(id);
+      exigir(t && t.estado === 'enviada', 'Esta tarea no está esperando aprobación.');
+      return this._confirmar('tareas', () => {
+        t.estado = 'pendiente';
+        t.enviadaEl = null;
+        t.nota = textoLimpio(nota, 200) || 'Revisala de nuevo.';
+      });
+    }
+
+    /** Borrar una tarea no aprobada. Si daba monedas por anotarla, se descuentan. */
+    eliminarTarea(id) {
+      const t = this.tarea(id);
+      exigir(t, 'Tarea no encontrada.');
+      exigir(t.estado !== 'aprobada', 'Una tarea aprobada no se puede borrar.');
+      return this._confirmar('tareas', () => {
+        const premio = this.estado.movimientos.find((m) => m.ref === t.id && m.tipo === 'anotar');
+        if (premio) this._movimiento(t.perfilId, -premio.cantidad, 'Tarea borrada: ' + t.titulo, t.id, 'ajuste');
+        this.estado.tareas = this.estado.tareas.filter((x) => x.id !== id);
+      });
+    }
+
+    borrarFotosAprobadas() {
+      return this._confirmar('tareas', () => {
+        let n = 0;
+        this.estado.tareas.forEach((t) => { if (t.foto && t.estado === 'aprobada') { t.foto = null; n++; } });
+        return n;
+      });
+    }
+
+    // ---------- Exámenes ----------
+    examen(id) { return this.estado.examenes.find((x) => x.id === id) || null; }
+    examenesDe(perfilId) {
+      return this.estado.examenes.filter((x) => x.perfilId === perfilId).sort((a, b) => a.fecha.localeCompare(b.fecha));
+    }
+    sesionesDe(examenId) {
+      return this.estado.tareas.filter((t) => t.examenId === examenId).sort((a, b) => a.vence.localeCompare(b.vence));
+    }
+
+    previsualizarPlan(fecha) {
+      if (!Fecha.esValida(fecha)) return [];
+      return this.plan.generar(fecha, Fecha.hoy());
+    }
+
+    agregarExamen(perfilId, datos) {
+      exigir(this.materia(datos.materiaId), 'Elegí una materia.');
+      exigir(Fecha.esValida(datos.fecha), 'Elegí la fecha del examen.');
+      exigir(Fecha.diferencia(Fecha.hoy(), datos.fecha) >= 0, 'La fecha del examen ya pasó.');
+      return this._confirmar('examenes', () => {
+        const x = {
+          id: util.nuevoId(), perfilId, materiaId: datos.materiaId, fecha: datos.fecha,
+          temas: textoLimpio(datos.temas, 200), nota: ''
+        };
+        this.estado.examenes.push(x);
+        this.plan.generar(x.fecha, Fecha.hoy()).forEach((s) => {
+          this.estado.tareas.push({
+            id: util.nuevoId(), perfilId, tipo: 'sesion', materiaId: x.materiaId,
+            titulo: s.titulo, detalle: x.temas, vence: s.fecha, creada: Fecha.hoy(), creadaPor: 'app',
+            estado: 'pendiente', enviadaEl: null, aprobadaEl: null, nota: '', foto: null, examenId: x.id
+          });
+        });
+        return x;
+      });
+    }
+
+    editarExamen(id, datos) {
+      const x = this.examen(id);
+      exigir(x, 'Examen no encontrado.');
+      return this._confirmar('examenes', () => {
+        if (datos.temas != null) x.temas = textoLimpio(datos.temas, 200);
+        if (datos.nota != null) x.nota = textoLimpio(datos.nota, 10);
+      });
+    }
+
+    /** Borra el examen y las sesiones que todavía no se aprobaron. */
+    eliminarExamen(id) {
+      return this._confirmar('examenes', () => {
+        this.estado.examenes = this.estado.examenes.filter((x) => x.id !== id);
+        this.estado.tareas = this.estado.tareas.filter((t) => !(t.examenId === id && t.estado !== 'aprobada'));
+      });
+    }
+
+    // ---------- Monedas ----------
+    movimientosDe(perfilId) {
+      return this.estado.movimientos.filter((m) => m.perfilId === perfilId);
+    }
+    saldo(perfilId) { return this.movimientosDe(perfilId).reduce((s, m) => s + m.cantidad, 0); }
+    /** Experiencia: monedas ganadas (sin contar gastos, reintegros ni descuentos por tareas borradas). */
+    xp(perfilId) {
+      const movs = this.movimientosDe(perfilId);
+      const ganadas = movs.filter((m) => m.cantidad > 0 && m.tipo !== 'reintegro').reduce((s, m) => s + m.cantidad, 0);
+      const descontadas = movs.filter((m) => m.tipo === 'ajuste').reduce((s, m) => s - m.cantidad, 0);
+      return ganadas - descontadas;
+    }
+    nivel(perfilId) { return reglas.nivelDesdeXp(Math.max(0, this.xp(perfilId))); }
+
+    // ---------- Vida y comida de la mascota ----------
+    /**
+     * Revisa los días que pasaron desde la última vez: cada día sin comer resta 1 de vida.
+     * No cuenta mientras la mascota es un huevo ni con el modo vacaciones activo.
+     * Solo guarda si algo cambió. Devuelve cuántos puntos de vida perdió.
+     */
+    actualizarVida(perfilId) {
+      const p = this.perfil(perfilId);
+      if (!p) return 0;
+      const v = p.vida;
+      const ayer = Fecha.sumarDias(Fecha.hoy(), -1);
+      if (!v.revisadoHasta) v.revisadoHasta = ayer;
+      if (v.revisadoHasta >= ayer) return 0;
+      const nacida = this.tareasDe(perfilId).length > 0;
+      return this._confirmar('vida', () => {
+        let perdidas = 0;
+        if (nacida && !v.vacaciones) {
+          let dia = Fecha.sumarDias(v.revisadoHasta, 1);
+          while (dia <= ayer) {
+            if (v.comioEl !== dia && v.valor > 0) { v.valor -= 1; perdidas += 1; }
+            dia = Fecha.sumarDias(dia, 1);
+          }
+        }
+        v.revisadoHasta = ayer;
+        return perdidas;
+      });
+    }
+
+    comioHoy(perfilId) {
+      const p = this.perfil(perfilId);
+      return !!p && p.vida.comioEl === Fecha.hoy();
+    }
+
+    /** Darle de comer: cuesta monedas, una vez por día, y devuelve 1 de vida. */
+    alimentar(perfilId) {
+      const p = this.perfil(perfilId);
+      exigir(p, 'Perfil no encontrado.');
+      exigir(this.tareasDe(perfilId).length > 0, 'Todavía es un huevo: anotá tu primera tarea para que nazca.');
+      exigir(!this.comioHoy(perfilId), 'Ya comió hoy. Mañana tiene hambre de nuevo.');
+      const costo = reglas.VIDA.COSTO_COMIDA;
+      exigir(this.saldo(perfilId) >= costo, 'Te faltan monedas para la comida. Terminá una tarea y volvé.');
+      return this._confirmar('vida', () => {
+        p.vida.comioEl = Fecha.hoy();
+        const antes = p.vida.valor;
+        p.vida.valor = Math.min(reglas.VIDA.MAX, p.vida.valor + 1);
+        this._movimiento(perfilId, -costo, 'Comida para ' + p.mascota.nombre, null, 'comida');
+        return p.vida.valor - antes;
+      });
+    }
+
+    /** Modo vacaciones: la mascota no pierde vida mientras está activo (lo maneja el padre). */
+    ponerVacaciones(perfilId, activo) {
+      const p = this.perfil(perfilId);
+      exigir(p, 'Perfil no encontrado.');
+      return this._confirmar('vida', () => {
+        p.vida.vacaciones = !!activo;
+        // Hoy no se cuenta: el cambio rige desde mañana.
+        p.vida.revisadoHasta = Fecha.hoy();
+      });
+    }
+
+    // ---------- Pomodoro ----------
+    /**
+     * Registra un pomodoro completo. Da 1 moneda cada 5 minutos de foco,
+     * con un tope diario para que no convenga dejar el reloj corriendo solo.
+     * Devuelve las monedas acreditadas (puede ser 0 si ya llegó al tope).
+     */
+    registrarPomodoro(perfilId, minutos, tareaId) {
+      exigir(this.perfil(perfilId), 'Perfil no encontrado.');
+      exigir(minutos > 0 && minutos <= 60, 'Duración inválida.');
+      const hoy = Fecha.hoy();
+      const yaHoy = this.estado.movimientos.filter((m) => m.perfilId === perfilId && m.tipo === 'pomodoro' && m.fecha === hoy)
+        .reduce((s, m) => s + m.cantidad, 0);
+      const base = Math.floor(minutos / 5) * M.POMODORO_POR_5_MIN;
+      const cantidad = Math.max(0, Math.min(base, M.TOPE_POMODORO_DIA - yaHoy));
+      return this._confirmar('pomodoro', () => {
+        const t = tareaId ? this.tarea(tareaId) : null;
+        this.estado.pomodoros.push({ id: util.nuevoId(), perfilId, fecha: hoy, minutos, tareaId: t ? t.id : null });
+        if (cantidad > 0) this._movimiento(perfilId, cantidad, 'Pomodoro de ' + minutos + ' min' + (t ? ': ' + t.titulo : ''), null, 'pomodoro');
+        return cantidad;
+      });
+    }
+
+    /** Pomodoros completos y minutos de foco en los últimos `dias` días (incluye hoy). */
+    estudio(perfilId, dias) {
+      const desde = Fecha.sumarDias(Fecha.hoy(), -(dias - 1));
+      const lista = this.estado.pomodoros.filter((p) => p.perfilId === perfilId && p.fecha >= desde);
+      return { pomodoros: lista.length, minutos: lista.reduce((s, p) => s + p.minutos, 0) };
+    }
+
+    monedasPomodoroHoy(perfilId) {
+      const hoy = Fecha.hoy();
+      return this.estado.movimientos.filter((m) => m.perfilId === perfilId && m.tipo === 'pomodoro' && m.fecha === hoy)
+        .reduce((s, m) => s + m.cantidad, 0);
+    }
+
+    // ---------- Premios y canjes ----------
+    get premios() { return this.estado.premios; }
+
+    agregarPremio(datos) {
+      const nombre = textoLimpio(datos.nombre, 60);
+      const precio = Math.round(Number(datos.precio));
+      exigir(nombre, 'Poné el nombre del premio.');
+      exigir(precio > 0 && precio <= 100000, 'El precio tiene que ser un número mayor que 0.');
+      return this._confirmar('premios', () => {
+        const p = { id: util.nuevoId(), nombre, precio, activo: true };
+        this.estado.premios.push(p);
+        return p;
+      });
+    }
+
+    editarPremio(id, datos) {
+      const p = this.estado.premios.find((x) => x.id === id);
+      exigir(p, 'Premio no encontrado.');
+      const precio = Math.round(Number(datos.precio));
+      exigir(textoLimpio(datos.nombre), 'Poné el nombre del premio.');
+      exigir(precio > 0, 'El precio tiene que ser mayor que 0.');
+      return this._confirmar('premios', () => { p.nombre = textoLimpio(datos.nombre, 60); p.precio = precio; });
+    }
+
+    eliminarPremio(id) {
+      return this._confirmar('premios', () => {
+        this.estado.premios = this.estado.premios.filter((x) => x.id !== id);
+      });
+    }
+
+    canjear(perfilId, premioId) {
+      const p = this.estado.premios.find((x) => x.id === premioId);
+      exigir(p, 'Ese premio ya no está disponible.');
+      exigir(this.saldo(perfilId) >= p.precio, 'Todavía no te alcanzan las monedas.');
+      return this._confirmar('canjes', () => {
+        const c = { id: util.nuevoId(), perfilId, premioId, nombre: p.nombre, precio: p.precio, fecha: Fecha.hoy(), entregado: false };
+        this.estado.canjes.push(c);
+        this._movimiento(perfilId, -p.precio, 'Canjeaste: ' + p.nombre, c.id, 'canje');
+        return c;
+      });
+    }
+
+    canjesDe(perfilId) { return this.estado.canjes.filter((c) => c.perfilId === perfilId); }
+
+    marcarEntregado(canjeId) {
+      const c = this.estado.canjes.find((x) => x.id === canjeId);
+      exigir(c, 'Canje no encontrado.');
+      return this._confirmar('canjes', () => { c.entregado = true; });
+    }
+
+    /** El padre cancela un canje y devuelve las monedas. */
+    cancelarCanje(canjeId) {
+      const c = this.estado.canjes.find((x) => x.id === canjeId);
+      exigir(c && !c.entregado, 'Ese canje ya fue entregado.');
+      return this._confirmar('canjes', () => {
+        this._movimiento(c.perfilId, c.precio, 'Canje cancelado: ' + c.nombre, c.id, 'reintegro');
+        this.estado.canjes = this.estado.canjes.filter((x) => x.id !== canjeId);
+      });
+    }
+
+    // ---------- Cosméticos de la mascota ----------
+    comprarCosmetico(perfilId, tipo, id) {
+      const perfil = this.perfil(perfilId);
+      const item = (reglas.COSMETICOS[tipo] || []).find((x) => x.id === id);
+      exigir(perfil && item, 'Ítem no encontrado.');
+      const lista = perfil.mascota[tipo];
+      exigir(!lista.includes(id), 'Ya lo tenés.');
+      exigir(this.saldo(perfilId) >= item.precio, 'Todavía no te alcanzan las monedas.');
+      return this._confirmar('mascota', () => {
+        lista.push(id);
+        this._movimiento(perfilId, -item.precio, 'Compraste para tu mascota: ' + item.nombre, id, 'compra');
+        this._equipar(perfil, tipo, id);
+      });
+    }
+
+    equipar(perfilId, tipo, id) {
+      const perfil = this.perfil(perfilId);
+      exigir(perfil && perfil.mascota[tipo].includes(id), 'Todavía no lo compraste.');
+      return this._confirmar('mascota', () => this._equipar(perfil, tipo, id));
+    }
+
+    _equipar(perfil, tipo, id) {
+      if (tipo === 'colores') perfil.mascota.color = id;
+      if (tipo === 'fondos') perfil.mascota.fondo = id;
+    }
+
+    // ---------- Revisión diaria y bonos ----------
+    /** El padre registra que hoy revisaron la agenda juntos. Cada 5 días seguidos da un bono. */
+    registrarRevision(perfilId) {
+      const p = this.perfil(perfilId);
+      exigir(p, 'Perfil no encontrado.');
+      const hoy = Fecha.hoy();
+      exigir(p.revision.ultima !== hoy, 'La revisión de hoy ya está registrada.');
+      return this._confirmar('revision', () => {
+        const ayer = Fecha.sumarDias(hoy, -1);
+        p.revision.racha = p.revision.ultima === ayer ? p.revision.racha + 1 : 1;
+        p.revision.ultima = hoy;
+        let bono = 0;
+        if (p.revision.racha % 5 === 0) {
+          bono = M.RACHA_REVISION;
+          this._movimiento(perfilId, bono, 'Revisión diaria: ' + p.revision.racha + ' días seguidos', null, 'bono');
+        }
+        return { racha: p.revision.racha, bono };
+      });
+    }
+
+    rachaRevision(perfilId) {
+      const p = this.perfil(perfilId);
+      if (!p || !p.revision.ultima) return 0;
+      const dif = Fecha.diferencia(p.revision.ultima, Fecha.hoy());
+      return dif <= 1 ? p.revision.racha : 0;
+    }
+
+    /**
+     * Revisa las semanas completas (lunes a domingo) que terminaron y todavía no se evaluaron.
+     * Si hubo al menos una tarea en la semana y todas se marcaron como hechas a tiempo, da el bono.
+     * Devuelve cuántas monedas se dieron.
+     */
+    evaluarSemanas(perfilId) {
+      const p = this.perfil(perfilId);
+      if (!p) return 0;
+      const hoy = Fecha.hoy();
+      let inicio = Fecha.lunes(p.creado);
+      if (inicio !== p.creado) inicio = Fecha.sumarDias(inicio, 7);
+      const pendientes = [];
+      while (Fecha.diferencia(Fecha.sumarDias(inicio, 6), hoy) > 0) {
+        if (!p.bonosSemana.includes(inicio)) pendientes.push(inicio);
+        inicio = Fecha.sumarDias(inicio, 7);
+      }
+      if (pendientes.length === 0) return 0;
+      return this._confirmar('bonos', () => {
+        let total = 0;
+        pendientes.forEach((lunes) => {
+          const domingo = Fecha.sumarDias(lunes, 6);
+          const deLaSemana = this.tareasDe(perfilId).filter((t) => t.tipo === 'tarea' && t.vence >= lunes && t.vence <= domingo);
+          const limpia = deLaSemana.length > 0 && deLaSemana.every((t) => t.enviadaEl && t.enviadaEl <= t.vence);
+          if (limpia) {
+            total += M.SEMANA_LIMPIA;
+            this._movimiento(perfilId, M.SEMANA_LIMPIA, 'Semana sin vencidas (' + Fecha.numeroDia(lunes) + ' al ' + Fecha.numeroDia(domingo) + ' de ' + Fecha.nombreMes(domingo) + ')', lunes, 'bono');
+          }
+          p.bonosSemana.push(lunes);
+        });
+        return total;
+      });
+    }
+
+    // ---------- Resúmenes para pantallas ----------
+    resumen(perfilId) {
+      const hoy = Fecha.hoy();
+      const manana = Fecha.sumarDias(hoy, 1);
+      const hace7 = Fecha.sumarDias(hoy, -7);
+      const tareas = this.tareasDe(perfilId);
+      const pend = tareas.filter((t) => t.estado === 'pendiente');
+      return {
+        pendientes: pend.length,
+        vencidas: pend.filter((t) => t.vence < hoy).length,
+        urgentes: pend.filter((t) => t.vence === hoy || t.vence === manana).length,
+        porAprobar: tareas.filter((t) => t.estado === 'enviada').length,
+        sesionesSemana: tareas.filter((t) => t.tipo === 'sesion' && t.enviadaEl && t.enviadaEl >= hace7).length,
+        rachaRevision: this.rachaRevision(perfilId),
+        pomodorosSemana: this.estudio(perfilId, 7).pomodoros,
+        vida: this.perfil(perfilId).vida.valor,
+        comioHoy: this.comioHoy(perfilId),
+        vacaciones: this.perfil(perfilId).vida.vacaciones,
+        saldo: this.saldo(perfilId),
+        tieneTareas: tareas.length > 0
+      };
+    }
+
+    mascota(perfilId) {
+      const p = this.perfil(perfilId);
+      const r = this.resumen(perfilId);
+      const nivel = this.nivel(perfilId);
+      const base = reglas.estadoMascota(r);
+      return Object.assign(base, {
+        nombre: p.mascota.nombre,
+        nivel,
+        xp: Math.max(0, this.xp(perfilId)),
+        etapa: reglas.etapa(nivel, r.tieneTareas),
+        color: reglas.color(p.mascota.color),
+        fondo: reglas.fondo(p.mascota.fondo),
+        vida: r.vida,
+        comioHoy: r.comioHoy,
+        vacaciones: r.vacaciones,
+        resumen: r
+      });
+    }
+
+    /**
+     * Porcentaje de tareas entregadas a tiempo entre las que vencían en los últimos `dias` días.
+     * Devuelve null si no hay tareas en ese período.
+     */
+    aTiempo(perfilId, dias, materiaId) {
+      const hoy = Fecha.hoy();
+      const desde = Fecha.sumarDias(hoy, -dias);
+      const lista = this.tareasDe(perfilId).filter((t) => t.tipo === 'tarea' && t.vence >= desde && t.vence < hoy
+        && (!materiaId || t.materiaId === materiaId));
+      if (lista.length === 0) return null;
+      const ok = lista.filter((t) => t.enviadaEl && t.enviadaEl <= t.vence).length;
+      return { pct: Math.round(100 * ok / lista.length), total: lista.length, ok };
+    }
+
+    // ---------- Copia de seguridad ----------
+    exportar() {
+      return JSON.stringify(Object.assign({ exportado: new Date().toISOString(), app: 'AgendaQuest' }, this.estado), null, 2);
+    }
+
+    importar(texto) {
+      let datos;
+      try { datos = JSON.parse(texto); } catch (e) { throw new ErrorValidacion('El archivo no es una copia de AgendaQuest válida.'); }
+      exigir(datos && Array.isArray(datos.perfiles), 'El archivo no es una copia de AgendaQuest válida.');
+      delete datos.exportado; delete datos.app;
+      const normal = AQ.Repositorio.normalizar(datos);
+      return this._confirmar('importar', () => { this.estado = normal; });
+    }
+
+    borrarTodo() {
+      return this._confirmar('importar', () => { this.estado = AQ.estadoVacio(); });
+    }
+
+    tamanioDatos() { return JSON.stringify(this.estado).length; }
+  }
+
+  AQ.Store = Store;
+  AQ.ErrorValidacion = ErrorValidacion;
+})(globalThis.AQ = globalThis.AQ || {});
+
+</script>
+  <script>
+/* js/pet.js */
+/*
+ * pet.js — Dibuja la mascota como pixel art en SVG (grilla de 16×16).
+ * Cuerpo según la etapa (huevo, bebé, joven, adulta) y cara según el estado.
+ */
+(function (AQ) {
+  'use strict';
+
+  const OSCURO = '#12141C';
+  const HOJA = '#7BE0A8';
+  const TALLO = '#8FB03E';
+  const MEJILLA = '#FF9E7A';
+  const LAGRIMA = '#6EC5FF';
+
+  // Cada píxel o bloque: [x, y, ancho, alto, color opcional]. Sin color = color del cuerpo.
+  const CUERPOS = {
+    huevo: [
+      [6, 2, 4, 1, '#EDE6D3'], [5, 3, 6, 1, '#EDE6D3'], [4, 4, 8, 2, '#EDE6D3'], [3, 6, 10, 6, '#EDE6D3'],
+      [4, 12, 8, 1, '#EDE6D3'], [5, 13, 6, 1, '#EDE6D3'],
+      [6, 5, 2, 2, '#C6F25B'], [9, 8, 2, 2, '#C6F25B'], [5, 10, 2, 1, '#C6F25B'], [8, 12, 2, 1, '#C6F25B']
+    ],
+    bebe: [[4, 6, 8, 1], [3, 7, 10, 6], [4, 13, 8, 1], [7, 5, 2, 1, HOJA]],
+    joven: [
+      [7, 2, 2, 2, TALLO], [5, 1, 2, 2, HOJA], [9, 1, 2, 2, HOJA],
+      [3, 4, 10, 1], [2, 5, 12, 8], [3, 13, 10, 1], [4, 14, 2, 1], [10, 14, 2, 1]
+    ],
+    adulto: [
+      [4, 1, 2, 2, HOJA], [7, 0, 2, 3, TALLO], [10, 1, 2, 2, HOJA],
+      [3, 3, 10, 1], [2, 4, 12, 1], [1, 5, 14, 8], [2, 13, 12, 1],
+      [0, 8, 1, 3], [15, 8, 1, 3], [3, 14, 3, 1], [10, 14, 3, 1]
+    ]
+  };
+
+  const ALTURA_CARA = { bebe: 8, joven: 7, adulto: 6 };
+
+  // Caras con coordenadas relativas a la fila de los ojos.
+  const CARAS = {
+    feliz: [[4, 1, 1, 1], [5, 0, 1, 1], [6, 1, 1, 1], [9, 1, 1, 1], [10, 0, 1, 1], [11, 1, 1, 1],
+      [3, 2, 1, 1, MEJILLA], [12, 2, 1, 1, MEJILLA], [6, 3, 1, 1], [9, 3, 1, 1], [7, 4, 2, 1]],
+    tranquilo: [[5, 0, 1, 2], [10, 0, 1, 2], [6, 3, 1, 1], [9, 3, 1, 1], [7, 4, 2, 1]],
+    hambriento: [[5, 0, 1, 2], [10, 0, 1, 2], [6, 3, 4, 2], [7, 4, 2, 1, MEJILLA], [9, 5, 1, 1, LAGRIMA]],
+    preocupado: [[4, -1, 1, 1], [5, -2, 1, 1], [11, -1, 1, 1], [10, -2, 1, 1], [5, 0, 1, 2], [10, 0, 1, 2],
+      [6, 4, 1, 1], [7, 3, 2, 1], [9, 4, 1, 1], [13, -1, 1, 2, LAGRIMA]],
+    debil: [[4, 1, 2, 1], [10, 1, 2, 1], [4, 0, 1, 1], [11, 0, 1, 1], [7, 4, 2, 1], [13, -3, 2, 1, '#8A8FA3'], [14, -4, 1, 1, '#8A8FA3']],
+    triste: [[4, 0, 1, 1], [5, -1, 1, 1], [11, 0, 1, 1], [10, -1, 1, 1], [4, 1, 2, 1], [10, 1, 2, 1],
+      [4, 2, 1, 2, LAGRIMA], [6, 3, 4, 1], [5, 4, 1, 1], [10, 4, 1, 1]]
+  };
+
+  function rects(lista, colorBase, dy) {
+    return lista.map(([x, y, w, h, c]) =>
+      '<rect x="' + x + '" y="' + (y + (dy || 0)) + '" width="' + w + '" height="' + h + '" fill="' + (c || colorBase) + '"></rect>'
+    ).join('');
+  }
+
+  const NOMBRE_ESTADO = { feliz: 'feliz', tranquilo: 'con la panza llena', hambriento: 'con hambre', preocupado: 'preocupada', triste: 'triste', debil: 'débil' };
+  const COLOR_DEBIL = '#8E9884';
+
+  /**
+   * @param {object} o { etapa, estado, color: {cuerpo, triste}, tamanio }
+   * @returns {string} SVG
+   */
+  function dibujarMascota(o) {
+    const etapa = o.etapa || 'joven';
+    const estado = o.estado || 'tranquilo';
+    const tam = o.tamanio || 96;
+    const colorCuerpo = estado === 'debil' ? COLOR_DEBIL : (estado === 'triste' ? o.color.triste : o.color.cuerpo);
+    let contenido = rects(CUERPOS[etapa], colorCuerpo);
+    if (etapa !== 'huevo') contenido += rects(CARAS[estado], OSCURO, ALTURA_CARA[etapa]);
+    const alt = etapa === 'huevo' ? 'Mascota: todavía es un huevo' : 'Mascota ' + NOMBRE_ESTADO[estado];
+    return '<svg class="mascota-svg" width="' + tam + '" height="' + tam + '" viewBox="0 0 16 16" shape-rendering="crispEdges" role="img" aria-label="' + alt + '">' + contenido + '</svg>';
+  }
+
+  AQ.dibujarMascota = dibujarMascota;
+})(globalThis.AQ = globalThis.AQ || {});
+
+</script>
+  <script>
+/* js/pomodoro.js */
+/*
+ * pomodoro.js — Temporizador Pomodoro (bloques de foco y descanso).
+ *
+ * La cuenta regresiva se calcula siempre contra una hora de fin (finEn), no sumando
+ * segundos: así el tiempo es exacto aunque el celular bloquee la pantalla o el
+ * navegador frene la pestaña. El estado se guarda aparte para sobrevivir a una recarga.
+ */
+(function (AQ) {
+  'use strict';
+
+  const OPCIONES_FOCO = [15, 20, 25, 30];
+  const OPCIONES_DESCANSO = [5, 10, 20];
+  const MIN = 60000;
+
+  class Temporizador {
+    /**
+     * @param {object} almacen objeto con getItem/setItem/removeItem (o null para no guardar)
+     * @param {function} reloj función que devuelve la hora actual en ms (inyectable para pruebas)
+     */
+    constructor(almacen, reloj) {
+      this.almacen = almacen || null;
+      this.reloj = reloj || (() => Date.now());
+      this.clave = 'agendaquest.pomodoro';
+      this.estado = null;
+      this._cargar();
+    }
+
+    get activo() { return !!this.estado; }
+
+    /** Empieza un bloque de foco. */
+    iniciar(perfilId, foco, descanso, tareaId) {
+      if (!OPCIONES_FOCO.includes(Number(foco))) throw new AQ.ErrorValidacion('Elegí cuánto dura el pomodoro.');
+      if (!OPCIONES_DESCANSO.includes(Number(descanso))) throw new AQ.ErrorValidacion('Elegí cuánto dura el descanso.');
+      this.estado = {
+        perfilId,
+        foco: Number(foco),
+        descanso: Number(descanso),
+        tareaId: tareaId || null,
+        fase: 'foco',
+        finEn: this.reloj() + Number(foco) * MIN,
+        restanteMs: null,
+        completados: 0
+      };
+      this._guardar();
+    }
+
+    /** Empieza otro bloque de foco con la misma configuración. */
+    otro() {
+      if (!this.estado) return;
+      this.estado.fase = 'foco';
+      this.estado.finEn = this.reloj() + this.estado.foco * MIN;
+      this.estado.restanteMs = null;
+      this._guardar();
+    }
+
+    pausar() {
+      const e = this.estado;
+      if (!e || e.restanteMs != null || e.fase === 'listo') return;
+      e.restanteMs = Math.max(0, e.finEn - this.reloj());
+      e.finEn = null;
+      this._guardar();
+    }
+
+    reanudar() {
+      const e = this.estado;
+      if (!e || e.restanteMs == null) return;
+      e.finEn = this.reloj() + e.restanteMs;
+      e.restanteMs = null;
+      this._guardar();
+    }
+
+    get pausado() { return !!this.estado && this.estado.restanteMs != null; }
+
+    /** Termina el descanso antes de tiempo y queda listo para otro pomodoro. */
+    saltarDescanso() {
+      if (!this.estado || this.estado.fase !== 'descanso') return;
+      this.estado.fase = 'listo';
+      this.estado.finEn = null;
+      this.estado.restanteMs = null;
+      this._guardar();
+    }
+
+    terminar() {
+      this.estado = null;
+      this._guardar();
+    }
+
+    /** Milisegundos que faltan en la fase actual (0 si está esperando). */
+    restante() {
+      const e = this.estado;
+      if (!e || e.fase === 'listo') return 0;
+      if (e.restanteMs != null) return e.restanteMs;
+      return Math.max(0, e.finEn - this.reloj());
+    }
+
+    /** Duración total de la fase actual en ms. */
+    total() {
+      const e = this.estado;
+      if (!e) return 0;
+      return (e.fase === 'descanso' ? e.descanso : e.foco) * MIN;
+    }
+
+    /**
+     * Avanza el reloj. Devuelve un evento si terminó una fase:
+     *   { tipo: 'foco-completo', minutos, tareaId } o { tipo: 'descanso-completo' } o null.
+     * Al terminar el foco empieza el descanso solo; al terminar el descanso espera
+     * a que el estudiante toque "Otro pomodoro".
+     */
+    tick() {
+      const e = this.estado;
+      if (!e || e.restanteMs != null || e.fase === 'listo') return null;
+      if (this.reloj() < e.finEn) return null;
+      if (e.fase === 'foco') {
+        const finFoco = e.finEn;
+        e.completados += 1;
+        e.fase = 'descanso';
+        e.finEn = finFoco + e.descanso * MIN;
+        // Si la app estuvo cerrada y el descanso también ya pasó, queda listo para el siguiente.
+        if (this.reloj() >= e.finEn) { e.fase = 'listo'; e.finEn = null; }
+        this._guardar();
+        return { tipo: 'foco-completo', perfilId: e.perfilId, minutos: e.foco, tareaId: e.tareaId };
+      }
+      e.fase = 'listo';
+      e.finEn = null;
+      this._guardar();
+      return { tipo: 'descanso-completo' };
+    }
+
+    _cargar() {
+      if (!this.almacen) return;
+      try {
+        const texto = this.almacen.getItem(this.clave);
+        this.estado = texto ? JSON.parse(texto) : null;
+      } catch (e) { this.estado = null; }
+    }
+
+    _guardar() {
+      if (!this.almacen) return;
+      try {
+        if (this.estado) this.almacen.setItem(this.clave, JSON.stringify(this.estado));
+        else this.almacen.removeItem(this.clave);
+      } catch (e) { /* si no se puede guardar, el temporizador sigue funcionando en memoria */ }
+    }
+  }
+
+  /** "mm:ss" redondeando hacia arriba, para que nunca muestre 00:00 antes de terminar. */
+  function formatear(ms) {
+    const s = Math.ceil(ms / 1000);
+    return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  /** Tres pitidos cortos con Web Audio. Se prepara en un toque del usuario para que el navegador lo permita. */
+  class Sonido {
+    preparar() {
+      try {
+        const Ctx = globalThis.AudioContext || globalThis.webkitAudioContext;
+        if (!this.ctx && Ctx) this.ctx = new Ctx();
+        if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+      } catch (e) { this.ctx = null; }
+    }
+
+    tocar(agudo) {
+      if (!this.ctx) return;
+      try {
+        const t0 = this.ctx.currentTime;
+        [0, 0.28, 0.56].forEach((d, i) => {
+          const osc = this.ctx.createOscillator();
+          const vol = this.ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.value = (agudo ? 880 : 587) * (i === 2 ? 1.5 : 1);
+          vol.gain.setValueAtTime(0.0001, t0 + d);
+          vol.gain.exponentialRampToValueAtTime(0.12, t0 + d + 0.02);
+          vol.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.22);
+          osc.connect(vol).connect(this.ctx.destination);
+          osc.start(t0 + d);
+          osc.stop(t0 + d + 0.24);
+        });
+      } catch (e) { /* sin sonido */ }
+    }
+  }
+
+  AQ.Temporizador = Temporizador;
+  AQ.Sonido = Sonido;
+  AQ.pomodoro = { OPCIONES_FOCO, OPCIONES_DESCANSO, formatear };
+})(globalThis.AQ = globalThis.AQ || {});
+
+</script>
+  <script>
+/* js/ui.js */
+/*
+ * ui.js — Piezas de interfaz reutilizables (devuelven HTML como texto).
+ * Todo texto que viene del usuario pasa por esc() antes de entrar al HTML.
+ */
+(function (AQ) {
+  'use strict';
+
+  const { Fecha, util } = AQ;
+  const esc = util.esc;
+
+  const ICONOS = {
+    volver: '<path d="M15 5l-7 7 7 7"/>',
+    mas: '<path d="M12 5v14M5 12h14"/>',
+    check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    candado: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+    camara: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
+    hoy: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+    examen: '<path d="M7 3h7l4 4v14H7z"/><path d="M10 12h5M10 16h5"/>',
+    materias: '<path d="M4 5h6v15H4zM10 5h4v15h-4zM15 6l4-1 3 14-4 1z"/>',
+    mascota: '<rect x="5" y="7" width="14" height="12" rx="3"/><path d="M12 7V4M9 4h6"/><circle cx="9.5" cy="12.5" r="1"/><circle cx="14.5" cy="12.5" r="1"/>',
+    ajustes: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+    salir: '<path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9"/>',
+    basura: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+    lapiz: '<path d="M4 20h4L19 9l-4-4L4 16z"/>',
+    reloj: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6M12 2v3"/>',
+    perfiles: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.3-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.8c1.6.9 2.6 2.7 3 5.2"/>'
+  };
+
+  function icono(nombre, tam, grosor) {
+    return '<svg class="icono" width="' + (tam || 20) + '" height="' + (tam || 20) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (grosor || 2) + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICONOS[nombre] + '</svg>';
+  }
+
+  function moneda(tam) {
+    const t = tam || 16;
+    return '<svg class="moneda" width="' + t + '" height="' + t + '" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><rect x="2" y="0" width="4" height="8" fill="#FFB547"/><rect x="0" y="2" width="8" height="4" fill="#FFB547"/><rect x="1" y="1" width="6" height="6" fill="#FFB547"/><rect x="3" y="2" width="2" height="4" fill="#B8791F"/></svg>';
+  }
+
+  /** Barra superior con botón volver opcional. */
+  function encabezado(titulo, volverA, extra) {
+    return '<header class="barra">' +
+      (volverA ? '<button type="button" class="boton-icono" data-accion="atras" data-pantalla="' + volverA + '" aria-label="Volver">' + icono('volver', 20, 2.5) + '</button>' : '') +
+      '<h1 class="titulo-pixel">' + esc(titulo) + '</h1>' +
+      '<div class="barra-extra">' + (extra || '') + '</div></header>';
+  }
+
+  function navEstudiante(activa) {
+    const items = [
+      ['hoy', 'Hoy', 'hoy'], ['examenes', 'Exámenes', 'examen'], ['pomodoro', 'Pomodoro', 'reloj'], ['materias', 'Materias', 'materias'], ['mascota', 'Mascota', 'mascota']
+    ];
+    return '<nav class="nav-inferior" aria-label="Secciones">' + items.map(([id, nombre, ic]) =>
+      '<button type="button" class="nav-item' + (id === activa ? ' activo' : '') + '" data-accion="ir" data-pantalla="' + id + '"' +
+      (id === activa ? ' aria-current="page"' : '') + '>' + icono(ic, 22) + '<span>' + nombre + '</span></button>'
+    ).join('') + '</nav>';
+  }
+
+  function puntoMateria(materia) {
+    return '<span class="punto" style="background:' + esc(materia ? materia.color : '#8A8FA3') + '"></span>';
+  }
+
+  /**
+   * Fila de tarea con casillero.
+   * opciones.modo: 'estudiante' (casillero para marcar) o 'lectura'.
+   */
+  function filaTarea(t, materia, opciones) {
+    const op = opciones || {};
+    const hoy = Fecha.hoy();
+    const vencida = t.estado === 'pendiente' && t.vence < hoy;
+    const enviada = t.estado === 'enviada';
+    const etiquetaFecha = vencida ? 'venció ' + Fecha.relativa(t.vence) : (t.vence === hoy ? 'para hoy' : Fecha.relativa(t.vence));
+    const meta = puntoMateria(materia) + '<span>' + esc(materia ? materia.nombre : 'Sin materia') + ' · ' + esc(etiquetaFecha) + '</span>' +
+      (t.tipo === 'sesion' ? '<span class="chip-mini">Sesión de estudio</span>' : '') +
+      (t.foto ? '<span class="chip-mini">Foto</span>' : '');
+    let casillero = '';
+    if (op.modo !== 'lectura' && (t.estado === 'pendiente' || enviada)) {
+      casillero = '<button type="button" class="casillero' + (enviada ? ' marcado' : '') + '" data-accion="' + (enviada ? 'desmarcar' : 'marcar') + '" data-id="' + t.id + '" aria-label="' +
+        esc((enviada ? 'Desmarcar: ' : 'Marcar como hecha: ') + t.titulo) + '">' + (enviada ? icono('check', 20, 3) : '') + '</button>';
+    }
+    return '<div class="fila-tarea' + (vencida ? ' vencida' : '') + (enviada ? ' enviada' : '') + '">' +
+      '<button type="button" class="fila-cuerpo" data-accion="ir" data-pantalla="tarea" data-id="' + t.id + '">' +
+      '<span class="meta">' + meta + '</span>' +
+      '<span class="fila-titulo">' + esc(t.titulo) + '</span>' +
+      (enviada ? '<span class="aviso-ok">Esperando aprobación</span>' : '') +
+      (t.nota && t.estado === 'pendiente' ? '<span class="aviso-nota">Papá: ' + esc(t.nota) + '</span>' : '') +
+      '</button>' + casillero + '</div>';
+  }
+
+  function barra(pct, color, etiqueta) {
+    return '<div class="barra-progreso" role="progressbar" aria-label="' + esc(etiqueta || '') + '" aria-valuenow="' + Math.round(pct) + '" aria-valuemin="0" aria-valuemax="100">' +
+      '<div style="width:' + util.limitar(pct, 0, 100) + '%;background:' + color + '"></div></div>';
+  }
+
+  /** Barra de vida en segmentos (corazones pixelados). */
+  function vida(valor, max, chico) {
+    const t = chico ? 12 : 18;
+    let html = '<span class="vida' + (chico ? ' chica' : '') + '" role="img" aria-label="Vida: ' + valor + ' de ' + max + '">';
+    for (let i = 0; i < max; i++) {
+      const lleno = i < valor;
+      const c = lleno ? (valor <= 2 ? '#FF7A6B' : '#FF5E7E') : '#33384C';
+      html += '<svg width="' + t + '" height="' + t + '" viewBox="0 0 7 6" shape-rendering="crispEdges" aria-hidden="true">' +
+        '<rect x="1" y="0" width="2" height="1" fill="' + c + '"/><rect x="4" y="0" width="2" height="1" fill="' + c + '"/>' +
+        '<rect x="0" y="1" width="7" height="2" fill="' + c + '"/><rect x="1" y="3" width="5" height="1" fill="' + c + '"/>' +
+        '<rect x="2" y="4" width="3" height="1" fill="' + c + '"/><rect x="3" y="5" width="1" height="1" fill="' + c + '"/>' +
+        (lleno ? '<rect x="1" y="1" width="1" height="1" fill="#FFC2CF"/>' : '') + '</svg>';
+    }
+    return html + '</span>';
+  }
+
+  function vacio(texto, boton) {
+    return '<div class="vacio"><p>' + texto + '</p>' + (boton || '') + '</div>';
+  }
+
+  AQ.ui = { icono, moneda, encabezado, navEstudiante, puntoMateria, filaTarea, barra, vida, vacio };
+})(globalThis.AQ = globalThis.AQ || {});
+
+</script>
+  <script>
+/* js/views-estudiante.js */
+/*
+ * views-estudiante.js — Pantallas del estudiante y de inicio.
+ * Cada vista recibe la app y devuelve el HTML de la pantalla.
+ */
+(function (AQ) {
+  'use strict';
+
+  const { Fecha, util, reglas, ui } = AQ;
+  const esc = util.esc;
+  const V = AQ.vistas = AQ.vistas || {};
+
+  // ---------- Inicio ----------
+
+  V.bienvenida = function () {
+    return '<main class="pantalla centrada">' +
+      '<div class="logo">' + ui.moneda(30) + '<span class="titulo-pixel grande">AgendaQuest</span></div>' +
+      '<p class="texto-suave">La agenda escolar con mascota. Primero, el padre o la madre crea un PIN de 4 números para su panel de control.</p>' +
+      '<form class="tarjeta formulario" data-form="crear-pin">' +
+      '<label for="pin1">PIN del padre (4 números)</label>' +
+      '<input id="pin1" name="pin1" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required>' +
+      '<label for="pin2">Repetí el PIN</label>' +
+      '<input id="pin2" name="pin2" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required>' +
+      '<p class="texto-chico">El PIN evita que los chicos aprueben sus propias tareas. No es una contraseña segura: no uses la del banco.</p>' +
+      '<button class="boton primario" type="submit">Crear PIN y seguir</button>' +
+      '</form>' +
+      '<p class="texto-chico centro">¿Tenés una copia de seguridad? <button type="button" class="enlace" data-accion="importar-inicio">Importar archivo</button> o <button type="button" class="enlace" data-accion="pegar-copia">pegar texto</button></p>' +
+      '<input type="file" id="archivo-importar" accept="application/json,.json" hidden data-cambio="importar">' +
+      '</main>';
+  };
+
+  V.perfiles = function (app) {
+    const s = app.store;
+    const tarjetas = s.perfiles.map((p) => {
+      const m = s.mascota(p.id);
+      const r = m.resumen;
+      let estado = '<span class="ok">Todo al día</span>';
+      if (r.tieneTareas && r.vida <= reglas.VIDA.DEBIL) estado = '<span class="mal">¡La mascota está débil!</span>';
+      else if (r.tieneTareas && !r.comioHoy && !r.vacaciones) estado = '<span class="alerta">La mascota tiene hambre</span>';
+      else if (r.vencidas) estado = '<span class="mal">' + r.vencidas + (r.vencidas === 1 ? ' vencida' : ' vencidas') + '</span>';
+      else if (r.urgentes) estado = '<span class="alerta">' + r.urgentes + ' para hoy o mañana</span>';
+      else if (!r.tieneTareas) estado = '<span class="texto-suave">Sin tareas todavía</span>';
+      return '<button type="button" class="tarjeta-perfil" data-accion="entrar" data-id="' + p.id + '">' +
+        AQ.dibujarMascota({ etapa: m.etapa, estado: m.estado, color: m.color, tamanio: 88 }) +
+        '<span class="nombre-perfil">' + esc(p.nombre) + '</span>' +
+        (r.tieneTareas ? ui.vida(m.vida, reglas.VIDA.MAX, true) : '') +
+        '<span class="monedas">' + ui.moneda(14) + s.saldo(p.id) + '</span>' +
+        '<span class="texto-chico">' + estado + '</span></button>';
+    }).join('');
+    return '<main class="pantalla">' +
+      '<div class="logo">' + ui.moneda(28) + '<span class="titulo-pixel grande">AgendaQuest</span></div>' +
+      '<h1 class="subtitulo">¿Quién va a estudiar hoy?</h1>' +
+      (s.perfiles.length ? '<div class="grilla-perfiles">' + tarjetas + '</div>'
+        : ui.vacio('Todavía no hay perfiles.', '<button type="button" class="boton primario" data-accion="pedir-pin" data-destino="perfil-form">Crear el primer perfil</button>')) +
+      '<div class="espaciador"></div>' +
+      '<button type="button" class="boton secundario ancho" data-accion="pedir-pin" data-destino="padre">' + ui.icono('candado', 18) + 'Panel del padre · pide PIN</button>' +
+      '<p class="texto-chico centro">Los datos se guardan en este navegador.</p>' +
+      '</main>';
+  };
+
+  // ---------- Hoy ----------
+
+  function tarjetaMascota(app, grande) {
+    const s = app.store;
+    const m = s.mascota(app.perfilId);
+    const feliz = app.felizActivo();
+    const estado = feliz ? 'feliz' : m.estado;
+    const info = reglas.TEXTO_ESTADO[estado];
+    const mensaje = m.etapa === 'huevo'
+      ? 'Soy un huevo. Anotá tu primera tarea y nazco.'
+      : (feliz && app.mensajeFeliz) ? app.mensajeFeliz : reglas.mensajeMascota(estado, m.resumen, m.nombre);
+    const costo = reglas.VIDA.COSTO_COMIDA;
+    let comida = '';
+    if (m.etapa !== 'huevo') {
+      if (m.comioHoy) comida = '<span class="chip-mini ok">Ya comió hoy</span>';
+      else if (s.saldo(app.perfilId) >= costo) comida = '<button type="button" class="boton primario chico boton-comida" data-accion="alimentar">Darle de comer · ' + ui.moneda(14) + costo + '</button>';
+      else comida = '<button type="button" class="boton apagado chico boton-comida" disabled>Faltan ' + (costo - s.saldo(app.perfilId)) + ' para comida</button>';
+      if (m.vacaciones) comida += '<span class="chip-mini">Modo vacaciones: no pierde vida</span>';
+    }
+    return '<section class="tarjeta-mascota' + (grande ? ' grande' : '') + '" style="background:' + m.fondo.css + '" aria-label="Tu mascota">' +
+      '<div class="mascota-caja' + (feliz ? ' salta' : '') + '">' +
+      AQ.dibujarMascota({ etapa: m.etapa, estado, color: m.color, tamanio: grande ? 144 : 96 }) +
+      (feliz ? '<span class="chispas" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' : '') +
+      '</div>' +
+      '<div class="mascota-info">' +
+      '<div class="fila-entre"><span class="titulo-pixel">' + esc(m.nombre) + '</span><span class="estado-mascota" style="color:' + info.color + '">' + (m.etapa === 'huevo' ? 'Huevo' : info.nombre) + '</span></div>' +
+      '<p class="mensaje-mascota" aria-live="polite">' + esc(mensaje) + '</p>' +
+      (m.etapa === 'huevo' ? '' :
+        '<div class="medidores"><span>Vida</span>' + ui.vida(m.vida, reglas.VIDA.MAX) +
+        '<span>Ánimo</span>' + ui.barra(m.animo, '#6EC5FF', 'Ánimo') + '</div>' +
+        '<div class="fila-comida">' + comida + '</div>') +
+      '</div></section>';
+  }
+
+  function seccionTareas(titulo, clase, lista, app) {
+    if (!lista.length) return '';
+    return '<section class="seccion"><h2 class="titulo-seccion ' + clase + '">' + titulo + '</h2>' +
+      lista.map((t) => ui.filaTarea(t, app.store.materia(t.materiaId))).join('') + '</section>';
+  }
+
+  V.hoy = function (app) {
+    const s = app.store;
+    const p = app.perfil();
+    const hoy = Fecha.hoy();
+    const manana = Fecha.sumarDias(hoy, 1);
+    const tareas = s.tareasDe(p.id).slice().sort((a, b) => a.vence.localeCompare(b.vence));
+    const pend = tareas.filter((t) => t.estado === 'pendiente');
+    const vencidas = pend.filter((t) => t.vence < hoy);
+    const paraHoy = pend.filter((t) => t.vence === hoy);
+    const paraManana = pend.filter((t) => t.vence === manana);
+    const proximos = pend.filter((t) => t.vence > manana);
+    const enviadas = tareas.filter((t) => t.estado === 'enviada');
+    const examenes = s.examenesDe(p.id).filter((x) => x.fecha >= hoy).slice(0, 2);
+    const sinMaterias = s.materiasDe(p.id).length === 0;
+
+    let cuerpo = '';
+    if (sinMaterias) {
+      cuerpo = ui.vacio('Para empezar, cargá las materias que tenés este año.',
+        '<button type="button" class="boton primario" data-accion="ir" data-pantalla="materia-form">Agregar materias</button>');
+    } else if (!pend.length && !enviadas.length) {
+      cuerpo = ui.vacio('No tenés nada pendiente. Si te dieron tarea, anotala con el botón +.');
+    }
+    cuerpo += seccionTareas('Vencido', 'mal', vencidas, app) +
+      seccionTareas('Para hoy', 'alerta', paraHoy, app) +
+      seccionTareas('Para mañana', 'alerta', paraManana, app) +
+      seccionTareas('Próximos días', '', proximos, app) +
+      seccionTareas('Esperando aprobación', 'ok', enviadas, app);
+
+    const tarjetasExamen = examenes.map((x) => {
+      const mat = s.materia(x.materiaId);
+      const ses = s.sesionesDe(x.id);
+      const hechas = ses.filter((t) => t.estado !== 'pendiente').length;
+      const faltan = Fecha.diferencia(hoy, x.fecha);
+      return '<button type="button" class="tarjeta-examen" data-accion="ir" data-pantalla="examen" data-id="' + x.id + '">' +
+        '<span class="etiqueta-azul">Examen · ' + (faltan === 0 ? 'hoy' : faltan === 1 ? 'mañana' : 'en ' + faltan + ' días') + '</span>' +
+        '<span class="fila-titulo">' + esc(mat ? mat.nombre : '') + (x.temas ? ': ' + esc(x.temas) : '') + '</span>' +
+        '<span class="texto-chico">' + esc(Fecha.larga(x.fecha)) + '</span>' +
+        (ses.length ? '<span class="segmentos">' + ses.map((t) => '<i class="' + (t.estado !== 'pendiente' ? 'lleno' : '') + '"></i>').join('') + '</span>' +
+          '<span class="texto-chico">Sesiones de estudio: ' + hechas + ' de ' + ses.length + '</span>' : '') +
+        '</button>';
+    }).join('');
+
+    return '<main class="pantalla con-nav">' +
+      '<header class="barra">' +
+      '<button type="button" class="boton-icono" data-accion="ir" data-pantalla="perfiles" aria-label="Cambiar de perfil">' + ui.icono('perfiles', 20) + '</button>' +
+      '<div class="saludo"><span class="texto-chico">' + esc(Fecha.larga(hoy)) + '</span><h1 class="titulo-pixel">Hola, ' + esc(p.nombre) + '</h1></div>' +
+      '<button type="button" class="pastilla-monedas" data-accion="ir" data-pantalla="mascota" aria-label="Monedas: ' + s.saldo(p.id) + '. Ir a la tienda">' + ui.moneda(16) + s.saldo(p.id) + '</button>' +
+      '</header>' +
+      tarjetaMascota(app, false) +
+      cuerpo +
+      (tarjetasExamen ? '<section class="seccion"><h2 class="titulo-seccion azul">Próximos exámenes</h2>' + tarjetasExamen + '</section>' : '') +
+      '<button type="button" class="fab" data-accion="ir" data-pantalla="' + (sinMaterias ? 'materia-form' : 'tarea-form') + '" aria-label="Anotar una tarea nueva">' + ui.icono('mas', 28, 3) + '</button>' +
+      ui.navEstudiante('hoy') +
+      '</main>';
+  };
+
+  // ---------- Formulario de tarea ----------
+
+  V['tarea-form'] = function (app) {
+    const s = app.store;
+    const p = app.perfil();
+    const edit = app.params.id ? s.tarea(app.params.id) : null;
+    const esSesion = edit && edit.tipo === 'sesion';
+    const materias = s.materiasDe(p.id);
+    const materiaSel = edit ? edit.materiaId : (app.params.materiaId || (materias[0] && materias[0].id));
+    const hoy = Fecha.hoy();
+    const vence = edit ? edit.vence : Fecha.sumarDias(hoy, 1);
+    const volver = app.params.volver || (edit ? 'tarea' : 'hoy');
+
+    const chips = materias.map((m) =>
+      '<label class="chip-radio"><input type="radio" name="materiaId" value="' + m.id + '"' + (m.id === materiaSel ? ' checked' : '') + (esSesion ? ' disabled' : '') + '>' +
+      '<span>' + ui.puntoMateria(m) + esc(m.nombre) + '</span></label>').join('');
+
+    const rapidas = [['Mañana', 1], ['Pasado', 2], ['En una semana', 7]].map(([n, d]) =>
+      '<button type="button" class="chip" data-accion="fecha-rapida" data-valor="' + Fecha.sumarDias(hoy, d) + '">' + n + '</button>').join('');
+
+    return '<main class="pantalla">' +
+      ui.encabezado(edit ? (esSesion ? 'Mover sesión' : 'Editar tarea') : (app.modoPadre ? 'Tarea para ' + p.nombre : 'Nueva tarea'), volver) +
+      (!edit && !app.modoPadre ? '<div class="aviso-monedas">' + ui.moneda(18) + '<span>Anotarla el mismo día que te la dan suma <strong>+' + reglas.MONEDAS.ANOTAR + '</strong></span></div>' : '') +
+      '<form class="formulario" data-form="tarea">' +
+      (esSesion ? '<p class="texto-suave">' + esc(edit.titulo) + '</p>' :
+        '<fieldset><legend>Materia</legend><div class="grilla-chips">' + chips + '</div>' +
+        '<button type="button" class="enlace" data-accion="ir" data-pantalla="materia-form" data-volver="tarea-form">+ Agregar otra materia</button></fieldset>' +
+        '<label for="titulo">¿Qué hay que hacer?</label>' +
+        '<input id="titulo" name="titulo" type="text" maxlength="120" required placeholder="Ej.: ejercicios 12 a 20, página 45" value="' + esc(edit ? edit.titulo : '') + '">' +
+        '<label for="detalle">Detalles (opcional)</label>' +
+        '<textarea id="detalle" name="detalle" rows="2" maxlength="500" placeholder="Ej.: en la carpeta, con letra prolija">' + esc(edit ? edit.detalle : '') + '</textarea>') +
+      '<label for="vence">' + (esSesion ? 'Día de la sesión' : '¿Para cuándo?') + '</label>' +
+      '<div class="fila-chips">' + rapidas + '</div>' +
+      '<input id="vence" name="vence" type="date" required value="' + vence + '">' +
+      (esSesion ? '' :
+        '<div class="foto-campo">' +
+        '<label class="boton secundario ancho" for="foto">' + ui.icono('camara', 20) + 'Foto del pizarrón (opcional)</label>' +
+        '<input id="foto" type="file" accept="image/*" capture="environment" hidden data-cambio="foto">' +
+        '<div id="foto-preview" class="foto-preview">' + (app.fotoTemporal ? '<img src="' + app.fotoTemporal + '" alt="Foto adjunta"><button type="button" class="enlace" data-accion="quitar-foto">Quitar foto</button>' : '') + '</div>' +
+        '</div>') +
+      '<button class="boton primario ancho" type="submit">' + (edit ? 'Guardar cambios' : (app.modoPadre ? 'Agregar tarea' : 'Anotar tarea · +' + reglas.MONEDAS.ANOTAR)) + '</button>' +
+      '</form></main>';
+  };
+
+  // ---------- Detalle de tarea ----------
+
+  V.tarea = function (app) {
+    const s = app.store;
+    const t = s.tarea(app.params.id);
+    if (!t) return V.hoy(app);
+    const m = s.materia(t.materiaId);
+    const estados = { pendiente: 'Pendiente', enviada: 'Esperando aprobación', aprobada: 'Aprobada' };
+    const puedeEditar = t.estado !== 'aprobada';
+    const puedeBorrar = t.estado !== 'aprobada' && (t.creadaPor === 'estudiante' || app.modoPadre);
+    return '<main class="pantalla">' +
+      ui.encabezado(t.tipo === 'sesion' ? 'Sesión de estudio' : 'Tarea', app.modoPadre ? 'padre' : (app.params.volver || 'hoy')) +
+      '<article class="tarjeta detalle">' +
+      '<span class="meta">' + ui.puntoMateria(m) + esc(m ? m.nombre : '') + '</span>' +
+      '<h2 class="titulo-detalle">' + esc(t.titulo) + '</h2>' +
+      '<dl class="datos">' +
+      '<dt>' + (t.tipo === 'sesion' ? 'Día' : 'Entrega') + '</dt><dd>' + esc(Fecha.larga(t.vence)) + ' (' + esc(Fecha.relativa(t.vence)) + ')</dd>' +
+      '<dt>Estado</dt><dd>' + estados[t.estado] + '</dd>' +
+      (t.detalle ? '<dt>' + (t.tipo === 'sesion' ? 'Temas' : 'Detalles') + '</dt><dd>' + esc(t.detalle) + '</dd>' : '') +
+      (t.nota && t.estado === 'pendiente' ? '<dt>Nota de papá</dt><dd class="aviso-nota">' + esc(t.nota) + '</dd>' : '') +
+      '</dl>' +
+      (t.foto ? '<img class="foto-grande" src="' + t.foto + '" alt="Foto adjunta a la tarea">' : '') +
+      '</article>' +
+      '<div class="acciones">' +
+      (t.estado === 'pendiente' && !app.modoPadre ? '<button type="button" class="boton primario ancho" data-accion="marcar" data-id="' + t.id + '">' + ui.icono('check', 20, 3) + 'Ya la hice</button>' : '') +
+      (t.estado === 'enviada' && !app.modoPadre ? '<button type="button" class="boton secundario ancho" data-accion="desmarcar" data-id="' + t.id + '">Todavía no la terminé</button>' : '') +
+      (puedeEditar ? '<button type="button" class="boton secundario ancho" data-accion="ir" data-pantalla="tarea-form" data-id="' + t.id + '">' + ui.icono('lapiz', 18) + (t.tipo === 'sesion' ? 'Cambiar el día' : 'Editar') + '</button>' : '') +
+      (puedeBorrar ? '<button type="button" class="boton peligro ancho" data-accion="borrar-tarea" data-id="' + t.id + '">' + ui.icono('basura', 18) + 'Borrar' + (t.creadaPor === 'estudiante' ? ' (descuenta las ' + reglas.MONEDAS.ANOTAR + ' monedas)' : '') + '</button>' : '') +
+      '</div></main>';
+  };
+
+  // ---------- Exámenes ----------
+
+  V.examenes = function (app) {
+    const s = app.store;
+    const p = app.perfil();
+    const hoy = Fecha.hoy();
+    const todos = s.examenesDe(p.id);
+    const proximos = todos.filter((x) => x.fecha >= hoy);
+    const pasados = todos.filter((x) => x.fecha < hoy).reverse();
+    const fila = (x) => {
+      const m = s.materia(x.materiaId);
+      const ses = s.sesionesDe(x.id);
+      const hechas = ses.filter((t) => t.estado !== 'pendiente').length;
+      return '<button type="button" class="fila-examen" data-accion="ir" data-pantalla="examen" data-id="' + x.id + '">' +
+        '<span class="fecha-bloque"><small>' + Fecha.diaCorto(x.fecha) + '</small><b>' + Fecha.numeroDia(x.fecha) + '</b></span>' +
+        '<span class="fila-examen-texto"><span class="fila-titulo">' + ui.puntoMateria(m) + esc(m ? m.nombre : '') + '</span>' +
+        '<span class="texto-chico">' + (x.temas ? esc(x.temas) + ' · ' : '') +
+        (x.fecha >= hoy ? 'Sesiones ' + hechas + ' de ' + ses.length : (x.nota ? 'Nota: ' + esc(x.nota) : 'Sin nota cargada')) + '</span></span></button>';
+    };
+    return '<main class="pantalla con-nav">' +
+      ui.encabezado('Exámenes', null) +
+      '<button type="button" class="boton primario ancho" data-accion="ir" data-pantalla="examen-form">' + ui.icono('mas', 20, 3) + 'Agendar examen</button>' +
+      '<section class="seccion"><h2 class="titulo-seccion azul">Próximos</h2>' +
+      (proximos.length ? proximos.map(fila).join('') : ui.vacio('No tenés exámenes agendados.')) + '</section>' +
+      (pasados.length ? '<section class="seccion"><h2 class="titulo-seccion">Anteriores</h2>' + pasados.slice(0, 15).map(fila).join('') + '</section>' : '') +
+      ui.navEstudiante('examenes') + '</main>';
+  };
+
+  V['examen-form'] = function (app) {
+    const s = app.store;
+    const p = app.perfil();
+    const materias = s.materiasDe(p.id);
+    if (!materias.length) {
+      return '<main class="pantalla">' + ui.encabezado('Nuevo examen', 'examenes') +
+        ui.vacio('Primero cargá tus materias.', '<button type="button" class="boton primario" data-accion="ir" data-pantalla="materia-form">Agregar materias</button>') + '</main>';
+    }
+    const fecha = Fecha.sumarDias(Fecha.hoy(), 7);
+    const chips = materias.map((m, i) =>
+      '<label class="chip-radio"><input type="radio" name="materiaId" value="' + m.id + '"' + (i === 0 ? ' checked' : '') + '>' +
+      '<span>' + ui.puntoMateria(m) + esc(m.nombre) + '</span></label>').join('');
+    return '<main class="pantalla">' +
+      ui.encabezado('Nuevo examen', app.modoPadre ? 'padre' : 'examenes') +
+      '<form class="formulario" data-form="examen">' +
+      '<fieldset><legend>Materia</legend><div class="grilla-chips">' + chips + '</div></fieldset>' +
+      '<label for="fecha">Fecha del examen</label>' +
+      '<input id="fecha" name="fecha" type="date" required min="' + Fecha.hoy() + '" value="' + fecha + '" data-cambio="plan">' +
+      '<label for="temas">Temas</label>' +
+      '<input id="temas" name="temas" type="text" maxlength="200" placeholder="Ej.: ecuaciones de primer grado y problemas">' +
+      '<section class="tarjeta plan"><h2 class="titulo-pixel azul">Plan de estudio sugerido</h2>' +
+      '<p class="texto-chico">Estudiar un poco en varios días rinde más que todo la noche anterior. Cada sesión aprobada suma +' + reglas.MONEDAS.SESION + '. Después podés mover cualquier sesión de día.</p>' +
+      '<ol id="plan-preview" class="lista-plan">' + V.planPreview(app, fecha) + '</ol></section>' +
+      '<button class="boton primario ancho" type="submit">Guardar examen</button>' +
+      '</form></main>';
+  };
+
+  V.planPreview = function (app, fecha) {
+    const plan = app.store.previsualizarPlan(fecha);
+    if (!plan.length) return '<li class="texto-chico">El examen es muy pronto para repartir sesiones. ¡A repasar hoy!</li>';
+    return plan.map((x) => '<li><span class="fecha-bloque"><small>' + Fecha.diaCorto(x.fecha) + '</small><b>' + Fecha.numeroDia(x.fecha) + '</b></span>' +
+      '<span>' + esc(x.titulo) + '</span><span class="monedas-chico">+' + reglas.MONEDAS.SESION + '</span></li>').join('');
+  };
+
+  V.examen = function (app) {
+    const s = app.store;
+    const x = s.examen(app.params.id);
+    if (!x) return V.examenes(app);
+    const m = s.materia(x.materiaId);
+    const hoy = Fecha.hoy();
+    const faltan = Fecha.diferencia(hoy, x.fecha);
+    const ses = s.sesionesDe(x.id);
+    const cuando = faltan > 1 ? 'Faltan ' + faltan + ' días' : faltan === 1 ? 'Es mañana' : faltan === 0 ? 'Es hoy' : 'Fue hace ' + (-faltan) + (faltan === -1 ? ' día' : ' días');
+    return '<main class="pantalla">' +
+      ui.encabezado('Examen', app.modoPadre ? 'padre' : 'examenes') +
+      '<article class="tarjeta detalle">' +
+      '<span class="meta">' + ui.puntoMateria(m) + esc(m ? m.nombre : '') + '</span>' +
+      '<h2 class="titulo-detalle">' + esc(Fecha.larga(x.fecha)) + '</h2>' +
+      '<p class="texto-suave">' + cuando + (x.temas ? ' · ' + esc(x.temas) : '') + '</p>' +
+      '</article>' +
+      (ses.length ? '<section class="seccion"><h2 class="titulo-seccion azul">Sesiones de estudio</h2>' +
+        ses.map((t) => t.estado === 'aprobada'
+          ? '<div class="fila-tarea hecha"><span class="fila-cuerpo"><span class="meta">' + esc(Fecha.relativa(t.vence)) + '</span><span class="fila-titulo">' + esc(t.titulo) + '</span><span class="aviso-ok">Aprobada · +' + reglas.MONEDAS.SESION + '</span></span></div>'
+          : ui.filaTarea(t, m, { modo: app.modoPadre ? 'lectura' : 'estudiante' })).join('') + '</section>' : '') +
+      (faltan <= 0 ? '<form class="tarjeta formulario" data-form="nota-examen" data-id="' + x.id + '">' +
+        '<label for="nota">¿Cómo te fue? Nota del examen</label>' +
+        '<div class="fila-form"><input id="nota" name="nota" type="text" maxlength="10" value="' + esc(x.nota) + '" placeholder="Ej.: 8">' +
+        '<button class="boton primario" type="submit">Guardar</button></div></form>' : '') +
+      '<button type="button" class="boton peligro ancho" data-accion="borrar-examen" data-id="' + x.id + '">' + ui.icono('basura', 18) + 'Borrar examen</button>' +
+      '</main>';
+  };
+
+  // ---------- Materias ----------
+
+  V.materias = function (app) {
+    const s = app.store;
+    const lista = s.materiasDe(app.perfilId);
+    return '<main class="pantalla con-nav">' +
+      ui.encabezado('Materias', null) +
+      '<button type="button" class="boton primario ancho" data-accion="ir" data-pantalla="materia-form">' + ui.icono('mas', 20, 3) + 'Agregar materia</button>' +
+      (lista.length ? '<ul class="lista-simple">' + lista.map((m) =>
+        '<li><span class="cuadro-color" style="background:' + esc(m.color) + '"></span>' +
+        '<span class="lista-texto"><b>' + esc(m.nombre) + '</b>' + (m.profesor ? '<small>' + esc(m.profesor) + '</small>' : '') + '</span>' +
+        '<button type="button" class="boton-icono" data-accion="ir" data-pantalla="materia-form" data-id="' + m.id + '" aria-label="Editar ' + esc(m.nombre) + '">' + ui.icono('lapiz', 18) + '</button>' +
+        '</li>').join('') + '</ul>' : ui.vacio('Todavía no cargaste materias.')) +
+      ui.navEstudiante('materias') + '</main>';
+  };
+
+  V['materia-form'] = function (app) {
+    const s = app.store;
+    const m = app.params.id ? s.materia(app.params.id) : null;
+    const colorSel = m ? m.color : reglas.COLORES_MATERIA[s.materiasDe(app.perfilId).length % reglas.COLORES_MATERIA.length];
+    const colores = reglas.COLORES_MATERIA.map((c, i) =>
+      '<label class="muestra"><input type="radio" name="color" value="' + c + '"' + (c === colorSel ? ' checked' : '') + '>' +
+      '<span style="background:' + c + '"><span class="solo-lectores">Color ' + (i + 1) + '</span></span></label>').join('');
+    const volver = app.params.volver || 'materias';
+    return '<main class="pantalla">' +
+      ui.encabezado(m ? 'Editar materia' : 'Nueva materia', volver) +
+      '<form class="formulario" data-form="materia">' +
+      '<label for="nombre">Nombre</label>' +
+      '<input id="nombre" name="nombre" type="text" maxlength="30" required placeholder="Ej.: Matemática" value="' + esc(m ? m.nombre : '') + '">' +
+      '<label for="profesor">Profesor o profesora (opcional)</label>' +
+      '<input id="profesor" name="profesor" type="text" maxlength="40" value="' + esc(m ? m.profesor : '') + '">' +
+      '<fieldset><legend>Color</legend><div class="fila-muestras">' + colores + '</div></fieldset>' +
+      '<button class="boton primario ancho" type="submit">' + (m ? 'Guardar' : 'Agregar materia') + '</button>' +
+      (!m ? '<button class="boton secundario ancho" type="submit" name="otra" value="1">Agregar y cargar otra</button>' : '') +
+      '</form>' +
+      (m ? '<button type="button" class="boton peligro ancho" data-accion="borrar-materia" data-id="' + m.id + '">' + ui.icono('basura', 18) + 'Borrar materia</button>' : '') +
+      '</main>';
+  };
+
+  // ---------- Mascota y tienda ----------
+
+  V.mascota = function (app) {
+    const s = app.store;
+    const p = app.perfil();
+    const m = s.mascota(p.id);
+    const saldo = s.saldo(p.id);
+    const xpNivel = m.xp % reglas.XP_POR_NIVEL;
+    const prox = reglas.PROXIMA_ETAPA[m.etapa];
+
+    const premios = s.premios.map((pr) => {
+      const alcanza = saldo >= pr.precio;
+      return '<li class="fila-premio"><span class="lista-texto"><b>' + esc(pr.nombre) + '</b><small class="monedas-chico">' + ui.moneda(12) + pr.precio + '</small></span>' +
+        '<button type="button" class="boton ' + (alcanza ? 'primario' : 'apagado') + ' chico" data-accion="canjear" data-id="' + pr.id + '"' + (alcanza ? '' : ' disabled') + '>' +
+        (alcanza ? 'Canjear' : 'Faltan ' + (pr.precio - saldo)) + '</button></li>';
+    }).join('');
+
+    const canjes = s.canjesDe(p.id).filter((c) => !c.entregado);
+
+    const cosmeticos = (tipo, titulo) => '<h3 class="titulo-chico">' + titulo + '</h3><div class="grilla-cosmeticos">' +
+      reglas.COSMETICOS[tipo].map((c) => {
+        const tiene = p.mascota[tipo].includes(c.id);
+        const puesto = (tipo === 'colores' ? p.mascota.color : p.mascota.fondo) === c.id;
+        const muestra = tipo === 'colores'
+          ? AQ.dibujarMascota({ etapa: m.etapa === 'huevo' ? 'bebe' : m.etapa, estado: 'tranquilo', color: c, tamanio: 48 })
+          : '<span class="muestra-fondo" style="background:' + c.css + '"></span>';
+        let boton;
+        if (puesto) boton = '<span class="chip-mini ok">Puesto</span>';
+        else if (tiene) boton = '<button type="button" class="boton secundario chico" data-accion="equipar" data-tipo="' + tipo + '" data-id="' + c.id + '">Usar</button>';
+        else boton = '<button type="button" class="boton ' + (saldo >= c.precio ? 'primario' : 'apagado') + ' chico" data-accion="comprar" data-tipo="' + tipo + '" data-id="' + c.id + '"' + (saldo >= c.precio ? '' : ' disabled') + '>' + ui.moneda(12) + c.precio + '</button>';
+        return '<div class="cosmetico">' + muestra + '<span class="texto-chico">' + esc(c.nombre) + '</span>' + boton + '</div>';
+      }).join('') + '</div>';
+
+    const movs = s.movimientosDe(p.id).slice(-12).reverse();
+
+    return '<main class="pantalla con-nav">' +
+      ui.encabezado('Tu mascota', null, '<span class="pastilla-monedas">' + ui.moneda(16) + saldo + '</span>') +
+      tarjetaMascota(app, true) +
+      '<section class="tarjeta">' +
+      '<div class="fila-entre"><b>Nivel ' + m.nivel + ' · ' + reglas.NOMBRE_ETAPA[m.etapa] + '</b><span class="texto-chico">' + xpNivel + ' / ' + reglas.XP_POR_NIVEL + '</span></div>' +
+      ui.barra(100 * xpNivel / reglas.XP_POR_NIVEL, '#C6F25B', 'Experiencia del nivel') +
+      '<p class="texto-chico">' + (m.etapa === 'huevo' ? 'Anotá tu primera tarea para que nazca.' : prox ? 'Evoluciona a ' + prox.nombre + ' en el nivel ' + prox.nivel + '.' : 'Ya llegó a su última etapa. ¡Crack!') + '</p>' +
+      '</section>' +
+      '<section class="seccion"><div class="fila-entre"><h2 class="titulo-seccion">Premios reales</h2><span class="texto-chico">los define papá</span></div>' +
+      (premios ? '<ul class="lista-simple">' + premios + '</ul>' : ui.vacio('Todavía no hay premios. Pedile a tu papá que cargue algunos.')) + '</section>' +
+      (canjes.length ? '<section class="seccion"><h2 class="titulo-seccion ok">Canjes por recibir</h2><ul class="lista-simple">' +
+        canjes.map((c) => '<li><span class="lista-texto"><b>' + esc(c.nombre) + '</b><small>Canjeado ' + esc(Fecha.relativa(c.fecha)) + '</small></span></li>').join('') + '</ul></section>' : '') +
+      '<section class="seccion"><h2 class="titulo-seccion">Para tu mascota</h2>' + cosmeticos('colores', 'Colores') + cosmeticos('fondos', 'Fondos') + '</section>' +
+      '<section class="seccion"><h2 class="titulo-seccion">Últimos movimientos</h2>' +
+      (movs.length ? '<ul class="lista-movs">' + movs.map((mv) =>
+        '<li><span>' + esc(mv.motivo) + '<small>' + esc(Fecha.relativa(mv.fecha)) + '</small></span><b class="' + (mv.cantidad >= 0 ? 'ok' : 'mal') + '">' + (mv.cantidad > 0 ? '+' : '') + mv.cantidad + '</b></li>').join('') + '</ul>'
+        : ui.vacio('Todavía no hay movimientos.')) + '</section>' +
+      '<section class="tarjeta"><h2 class="titulo-chico">Cómo se ganan monedas</h2><ul class="lista-reglas">' +
+      '<li>Anotar una tarea: +' + reglas.MONEDAS.ANOTAR + '</li>' +
+      '<li>Tarea aprobada, hecha a tiempo: +' + reglas.MONEDAS.A_TIEMPO + '</li>' +
+      '<li>Tarea aprobada, hecha tarde: +' + reglas.MONEDAS.TARDE + '</li>' +
+      '<li>Sesión de estudio aprobada: +' + reglas.MONEDAS.SESION + '</li>' +
+      '<li>Pomodoro completo: +1 cada 5 minutos (hasta ' + reglas.MONEDAS.TOPE_POMODORO_DIA + ' por día)</li>' +
+      '<li>5 días seguidos de revisión con papá: +' + reglas.MONEDAS.RACHA_REVISION + '</li>' +
+      '<li>Semana sin tareas vencidas: +' + reglas.MONEDAS.SEMANA_LIMPIA + '</li>' +
+      '</ul><h2 class="titulo-chico">Cómo se cuida la mascota</h2><ul class="lista-reglas">' +
+      '<li>Come una vez por día: cuesta ' + reglas.VIDA.COSTO_COMIDA + ' monedas y le devuelve 1 de vida.</li>' +
+      '<li>Cada día que pasa sin comer (porque no entraste o no había monedas) pierde 1 de vida.</li>' +
+      '<li>Con ' + reglas.VIDA.DEBIL + ' de vida o menos se pone débil. Con 0 queda sin fuerzas, pero no se muere: comiendo se recupera.</li>' +
+      '</ul></section>' +
+      ui.navEstudiante('mascota') + '</main>';
+  };
+})(globalThis.AQ = globalThis.AQ || {});
+
+</script>
+  <script>
+/* js/views-padre.js */
+/*
+ * views-padre.js — PIN, panel del padre y ajustes.
+ */
+(function (AQ) {
+  'use strict';
+
+  const { Fecha, util, reglas, ui } = AQ;
+  const esc = util.esc;
+  const V = AQ.vistas = AQ.vistas || {};
+
+  V.pin = function (app) {
+    return '<main class="pantalla centrada">' +
+      ui.encabezado('Panel del padre', 'perfiles') +
+      '<form class="tarjeta formulario" data-form="pin">' +
+      '<div class="centro">' + ui.icono('candado', 36) + '</div>' +
+      '<label for="pin">Ingresá el PIN</label>' +
+      '<input id="pin" name="pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="current-password" required autofocus>' +
+      (app.params.error ? '<p class="texto-error" role="alert">PIN incorrecto. Probá de nuevo.</p>' : '') +
+      '<button class="boton primario ancho" type="submit">Entrar</button>' +
+      '</form></main>';
+  };
+
+  function kpi(titulo, valor, detalle, clase) {
+    return '<div class="kpi"><span class="texto-chico">' + titulo + '</span><span class="kpi-valor ' + (clase || '') + '">' + valor + '</span>' +
+      (detalle ? '<span class="texto-chico">' + detalle + '</span>' : '') + '</div>';
+  }
+
+  V.padre = function (app) {
+    const s = app.store;
+    const perfiles = s.perfiles;
+    const barraSup = '<header class="barra padre-barra">' +
+      '<div class="logo chico">' + ui.moneda(22) + '<span class="titulo-pixel">Panel del padre</span></div>' +
+      '<div class="barra-extra">' +
+      '<button type="button" class="boton secundario chico" data-accion="ir" data-pantalla="padre-ajustes">' + ui.icono('ajustes', 18) + 'Ajustes</button>' +
+      '<button type="button" class="boton secundario chico" data-accion="salir-padre">' + ui.icono('salir', 18) + 'Salir</button>' +
+      '</div></header>';
+
+    if (!perfiles.length) {
+      return '<main class="pantalla ancha">' + barraSup +
+        ui.vacio('Todavía no hay perfiles.', '<button type="button" class="boton primario" data-accion="ir" data-pantalla="perfil-form">Crear perfil</button>') + '</main>';
+    }
+    if (!s.perfil(app.perfilId)) app.perfilId = perfiles[0].id;
+    const p = s.perfil(app.perfilId);
+    const hoy = Fecha.hoy();
+
+    const pestanas = '<div class="pestanas" role="tablist">' + perfiles.map((x) => {
+      const n = s.resumen(x.id).porAprobar;
+      return '<button type="button" role="tab" class="pestana' + (x.id === p.id ? ' activa' : '') + '" aria-selected="' + (x.id === p.id) + '" data-accion="elegir-perfil-padre" data-id="' + x.id + '">' +
+        esc(x.nombre) + (n ? '<span class="burbuja">' + n + '</span>' : '') + '</button>';
+    }).join('') + '</div>';
+
+    const r = s.resumen(p.id);
+    const aTiempo = s.aTiempo(p.id, 30);
+    const racha = s.rachaRevision(p.id);
+    const revisoHoy = p.revision.ultima === hoy;
+
+    // Para aprobar
+    const enviadas = s.tareasDe(p.id).filter((t) => t.estado === 'enviada').sort((a, b) => a.vence.localeCompare(b.vence));
+    const aprobar = enviadas.map((t) => {
+      const m = s.materia(t.materiaId);
+      let monto = reglas.MONEDAS.A_TIEMPO;
+      let cuando = 'a tiempo';
+      if (t.tipo === 'sesion') { monto = reglas.MONEDAS.SESION; cuando = 'sesión de estudio'; }
+      else if (Fecha.diferencia(t.enviadaEl, t.vence) < 0) { monto = reglas.MONEDAS.TARDE; cuando = 'hecha tarde'; }
+      const devolviendo = app.devolviendo === t.id;
+      return '<div class="item-aprobar">' +
+        '<button type="button" class="fila-cuerpo" data-accion="ir" data-pantalla="tarea" data-id="' + t.id + '">' +
+        '<span class="meta">' + ui.puntoMateria(m) + esc(m ? m.nombre : '') + ' · vence ' + esc(Fecha.relativa(t.vence)) + ' · ' + cuando + (t.foto ? ' · con foto' : '') + '</span>' +
+        '<span class="fila-titulo">' + esc(t.titulo) + '</span></button>' +
+        (devolviendo
+          ? '<form class="form-devolver" data-form="devolver" data-id="' + t.id + '"><label for="nota-' + t.id + '">Nota para ' + esc(p.nombre) + '</label>' +
+            '<input id="nota-' + t.id + '" name="nota" type="text" maxlength="200" placeholder="Ej.: falta el ejercicio 4" autofocus>' +
+            '<div class="fila-botones"><button type="button" class="boton secundario chico" data-accion="cancelar-devolver">Cancelar</button><button class="boton primario chico" type="submit">Devolver</button></div></form>'
+          : '<div class="fila-botones"><button type="button" class="boton secundario chico" data-accion="devolver" data-id="' + t.id + '">Devolver con nota</button>' +
+            '<button type="button" class="boton primario chico" data-accion="aprobar" data-id="' + t.id + '">Aprobar · +' + monto + '</button></div>') +
+        '</div>';
+    }).join('');
+
+    // Canjes
+    const canjes = s.canjesDe(p.id).filter((c) => !c.entregado);
+    const listaCanjes = canjes.map((c) =>
+      '<li><span class="lista-texto"><b>' + esc(c.nombre) + '</b><small>Canjeado ' + esc(Fecha.relativa(c.fecha)) + ' · ' + c.precio + ' monedas</small></span>' +
+      '<span class="fila-botones"><button type="button" class="boton secundario chico" data-accion="cancelar-canje" data-id="' + c.id + '">Cancelar</button>' +
+      '<button type="button" class="boton primario chico" data-accion="entregado" data-id="' + c.id + '">Entregado</button></span></li>').join('');
+
+    // Pendientes
+    const pendientes = s.tareasDe(p.id).filter((t) => t.estado === 'pendiente').sort((a, b) => a.vence.localeCompare(b.vence));
+    const listaPend = pendientes.slice(0, 20).map((t) => {
+      const m = s.materia(t.materiaId);
+      const vencida = t.vence < hoy;
+      return '<li class="' + (vencida ? 'vencida' : '') + '"><button type="button" class="lista-texto boton-texto" data-accion="ir" data-pantalla="tarea" data-id="' + t.id + '">' +
+        '<b>' + esc(t.titulo) + '</b><small>' + ui.puntoMateria(m) + esc(m ? m.nombre : '') + ' · ' + (vencida ? 'venció ' : '') + esc(Fecha.relativa(t.vence)) +
+        (t.tipo === 'sesion' ? ' · sesión' : '') + (t.creadaPor === 'padre' ? ' · la cargaste vos' : '') + '</small></button>' +
+        '<button type="button" class="boton-icono" data-accion="borrar-tarea" data-id="' + t.id + '" aria-label="Borrar ' + esc(t.titulo) + '">' + ui.icono('basura', 18) + '</button></li>';
+    }).join('');
+
+    // Por materia
+    const porMateria = s.materiasDe(p.id).map((m) => ({ m, dato: s.aTiempo(p.id, 30, m.id) })).filter((x) => x.dato);
+    const barrasMateria = porMateria.map(({ m, dato }) => {
+      const bajo = dato.pct < 70;
+      return '<div class="fila-barra"><span>' + esc(m.nombre) + '</span>' + ui.barra(dato.pct, bajo ? '#FFB547' : '#7BE0A8', m.nombre) +
+        '<b class="' + (bajo ? 'alerta' : '') + '">' + dato.pct + '%</b><small>' + dato.ok + '/' + dato.total + '</small></div>';
+    }).join('');
+
+    // Exámenes
+    const examenes = s.examenesDe(p.id);
+    const proximos = examenes.filter((x) => x.fecha >= hoy).slice(0, 5);
+    const conNota = examenes.filter((x) => x.fecha < hoy).reverse().slice(0, 5);
+    const filaEx = (x) => {
+      const m = s.materia(x.materiaId);
+      const ses = s.sesionesDe(x.id);
+      const hechas = ses.filter((t) => t.estado !== 'pendiente').length;
+      return '<button type="button" class="fila-examen" data-accion="ir" data-pantalla="examen" data-id="' + x.id + '">' +
+        '<span class="fecha-bloque"><small>' + Fecha.diaCorto(x.fecha) + '</small><b>' + Fecha.numeroDia(x.fecha) + '</b></span>' +
+        '<span class="fila-examen-texto"><span class="fila-titulo">' + ui.puntoMateria(m) + esc(m ? m.nombre : '') + (x.temas ? ': ' + esc(x.temas) : '') + '</span>' +
+        '<span class="texto-chico">' + (x.fecha >= hoy ? 'Sesiones de estudio: ' + hechas + ' de ' + ses.length : (x.nota ? 'Nota: ' + esc(x.nota) : 'Sin nota cargada')) + '</span></span></button>';
+    };
+
+    const movs = s.movimientosDe(p.id).slice(-10).reverse();
+
+    return '<main class="pantalla ancha">' + barraSup + pestanas +
+      '<section class="tarjeta revision">' +
+      '<div><h2 class="titulo-chico">Revisión diaria</h2><p class="texto-chico">Cinco minutos juntos: miren la lista y comparen con el cuaderno de comunicados o el grupo del curso. Cada 5 días seguidos, +' + reglas.MONEDAS.RACHA_REVISION + ' monedas.</p></div>' +
+      '<div class="revision-accion"><span class="texto-chico">Racha: <b>' + racha + (racha === 1 ? ' día' : ' días') + '</b></span>' +
+      (revisoHoy ? '<span class="chip-mini ok">Hoy ya la hicieron</span>' : '<button type="button" class="boton primario" data-accion="revision">Sí, hoy la revisamos</button>') +
+      '</div></section>' +
+      '<div class="kpis">' +
+      kpi('A tiempo (últimos 30 días)', aTiempo ? aTiempo.pct + '%' : '—', aTiempo ? aTiempo.ok + ' de ' + aTiempo.total + (aTiempo.total === 1 ? ' tarea' : ' tareas') : 'Sin datos todavía', aTiempo && aTiempo.pct < 70 ? 'alerta' : 'ok') +
+      kpi('Pendientes', r.pendientes, r.vencidas ? '<span class="mal">' + r.vencidas + (r.vencidas === 1 ? ' vencida' : ' vencidas') + '</span>' : 'ninguna vencida') +
+      kpi('Para aprobar', r.porAprobar, '') +
+      kpi('Monedas', s.saldo(p.id), 'Nivel ' + s.nivel(p.id), 'dorado') +
+      '</div>' +
+      '<div class="columnas">' +
+      '<div class="columna">' +
+      '<section class="tarjeta"><div class="fila-entre"><h2 class="titulo-chico">Para aprobar</h2><span class="texto-chico">' + (enviadas.length ? enviadas.length + (enviadas.length === 1 ? ' tarea' : ' tareas') : 'Nada por revisar') + '</span></div>' +
+      (aprobar || '<p class="texto-suave">Cuando ' + esc(p.nombre) + ' marque tareas como hechas, aparecen acá.</p>') + '</section>' +
+      (canjes.length ? '<section class="tarjeta"><h2 class="titulo-chico">Canjes por entregar</h2><ul class="lista-simple">' + listaCanjes + '</ul></section>' : '') +
+      '<section class="tarjeta"><div class="fila-entre"><h2 class="titulo-chico">Tareas pendientes</h2>' +
+      '<span class="fila-botones"><button type="button" class="boton secundario chico" data-accion="ir" data-pantalla="examen-form">+ Examen</button><button type="button" class="boton secundario chico" data-accion="ir" data-pantalla="tarea-form">+ Tarea</button></span></div>' +
+      (listaPend ? '<ul class="lista-simple">' + listaPend + '</ul>' : '<p class="texto-suave">No hay tareas pendientes.</p>') + '</section>' +
+      '</div>' +
+      '<div class="columna">' +
+      '<section class="tarjeta"><h2 class="titulo-chico">A tiempo por materia (30 días)</h2>' +
+      (barrasMateria ? barrasMateria + '<p class="texto-chico">En naranja, las materias por debajo del 70%.</p>' : '<p class="texto-suave">Aparece cuando haya tareas vencidas en el período.</p>') + '</section>' +
+      (function () {
+        const m = s.mascota(p.id);
+        if (m.etapa === 'huevo') return '';
+        return '<section class="tarjeta"><div class="fila-entre"><h2 class="titulo-chico">Mascota: ' + esc(m.nombre) + '</h2>' + ui.vida(m.vida, reglas.VIDA.MAX) + '</div>' +
+          '<p class="texto-chico">' + (m.comioHoy ? 'Hoy ya comió.' : 'Hoy todavía no comió.') + ' Come una vez por día (' + reglas.VIDA.COSTO_COMIDA + ' monedas) y pierde 1 de vida por cada día sin comer. Nunca se muere.</p>' +
+          '<div class="fila-entre"><span class="texto-chico">' + (m.vacaciones ? '<b class="ok">Modo vacaciones activo:</b> no pierde vida.' : 'Para feriados largos o vacaciones, pausá el hambre.') + '</span>' +
+          '<button type="button" class="boton secundario chico" data-accion="vacaciones" data-valor="' + (m.vacaciones ? '0' : '1') + '">' + (m.vacaciones ? 'Terminar vacaciones' : 'Modo vacaciones') + '</button></div></section>';
+      })() +
+      (function () {
+        const e7 = s.estudio(p.id, 7);
+        const e1 = s.estudio(p.id, 1);
+        return '<section class="tarjeta"><h2 class="titulo-chico">Pomodoro</h2>' +
+          '<div class="dos-datos"><div><span class="kpi-valor">' + e1.pomodoros + '</span><span class="texto-chico">hoy · ' + e1.minutos + ' min</span></div>' +
+          '<div><span class="kpi-valor">' + e7.pomodoros + '</span><span class="texto-chico">últimos 7 días · ' + e7.minutos + ' min</span></div></div>' +
+          '<p class="texto-chico">Da 1 moneda cada 5 minutos, hasta ' + reglas.MONEDAS.TOPE_POMODORO_DIA + ' por día. No se aprueba: la app no puede saber si estudió de verdad, así que conviene mirarlo de vez en cuando.</p></section>';
+      })() +
+      '<section class="tarjeta"><h2 class="titulo-chico">Próximos exámenes</h2>' + (proximos.length ? proximos.map(filaEx).join('') : '<p class="texto-suave">No hay exámenes agendados.</p>') +
+      (conNota.length ? '<h3 class="titulo-chico">Anteriores</h3>' + conNota.map(filaEx).join('') : '') + '</section>' +
+      '<section class="tarjeta"><h2 class="titulo-chico">Últimos movimientos de monedas</h2>' +
+      (movs.length ? '<ul class="lista-movs">' + movs.map((mv) =>
+        '<li><span>' + esc(mv.motivo) + '<small>' + esc(Fecha.relativa(mv.fecha)) + '</small></span><b class="' + (mv.cantidad >= 0 ? 'ok' : 'mal') + '">' + (mv.cantidad > 0 ? '+' : '') + mv.cantidad + '</b></li>').join('') + '</ul>'
+        : '<p class="texto-suave">Sin movimientos todavía.</p>') + '</section>' +
+      '</div></div></main>';
+  };
+
+  V['padre-ajustes'] = function (app) {
+    const s = app.store;
+    const kb = Math.round(s.tamanioDatos() / 1024);
+    const perfiles = s.perfiles.map((p) =>
+      '<li><span class="lista-texto"><b>' + esc(p.nombre) + '</b><small>' + (p.anio ? esc(p.anio) + ' · ' : '') + 'mascota: ' + esc(p.mascota.nombre) + '</small></span>' +
+      '<button type="button" class="boton-icono" data-accion="ir" data-pantalla="perfil-form" data-id="' + p.id + '" aria-label="Editar ' + esc(p.nombre) + '">' + ui.icono('lapiz', 18) + '</button></li>').join('');
+    const premios = s.premios.map((pr) =>
+      '<li><span class="lista-texto"><b>' + esc(pr.nombre) + '</b><small class="monedas-chico">' + ui.moneda(12) + pr.precio + '</small></span>' +
+      '<button type="button" class="boton-icono" data-accion="ir" data-pantalla="premio-form" data-id="' + pr.id + '" aria-label="Editar ' + esc(pr.nombre) + '">' + ui.icono('lapiz', 18) + '</button></li>').join('');
+
+    return '<main class="pantalla ancha">' + ui.encabezado('Ajustes', 'padre') +
+      '<div class="columnas"><div class="columna">' +
+      '<section class="tarjeta"><div class="fila-entre"><h2 class="titulo-chico">Perfiles</h2><button type="button" class="boton secundario chico" data-accion="ir" data-pantalla="perfil-form">+ Perfil</button></div>' +
+      (perfiles ? '<ul class="lista-simple">' + perfiles + '</ul>' : '<p class="texto-suave">Sin perfiles.</p>') + '</section>' +
+      '<section class="tarjeta"><div class="fila-entre"><h2 class="titulo-chico">Tienda de premios</h2><button type="button" class="boton secundario chico" data-accion="ir" data-pantalla="premio-form">+ Premio</button></div>' +
+      '<p class="texto-chico">Premios reales que tus hijos pueden canjear con monedas. Como referencia: una tarea a tiempo da ' + (reglas.MONEDAS.ANOTAR + reglas.MONEDAS.A_TIEMPO) + ' monedas contando la anotación.</p>' +
+      (premios ? '<ul class="lista-simple">' + premios + '</ul>' : '<p class="texto-suave">Todavía no cargaste premios.</p>') + '</section>' +
+      '</div><div class="columna">' +
+      '<section class="tarjeta"><h2 class="titulo-chico">Cambiar PIN</h2><form class="formulario" data-form="cambiar-pin">' +
+      '<label for="pin-actual">PIN actual</label><input id="pin-actual" name="actual" type="password" inputmode="numeric" maxlength="4" required>' +
+      '<label for="pin-nuevo">PIN nuevo (4 números)</label><input id="pin-nuevo" name="nuevo" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required>' +
+      '<button class="boton primario" type="submit">Cambiar PIN</button></form></section>' +
+      '<section class="tarjeta"><h2 class="titulo-chico">Datos y copia de seguridad</h2>' +
+      '<p class="texto-chico">Todo se guarda en este navegador (' + kb + ' KB usados). Si se borran los datos del navegador, se pierde. Descargá una copia cada tanto.</p>' +
+      '<div class="acciones">' +
+      '<button type="button" class="boton primario ancho" data-accion="exportar">Descargar copia de seguridad</button>' +
+      '<button type="button" class="boton secundario ancho" data-accion="copiar-copia">Copiar copia como texto</button>' +
+      '<button type="button" class="boton secundario ancho" data-accion="importar">Importar copia desde archivo</button>' +
+      '<button type="button" class="boton secundario ancho" data-accion="pegar-copia">Pegar copia como texto</button>' +
+      '<input type="file" id="archivo-importar" accept="application/json,.json" hidden data-cambio="importar">' +
+      '<button type="button" class="boton secundario ancho" data-accion="borrar-fotos">Borrar fotos de tareas aprobadas</button>' +
+      '<button type="button" class="boton peligro ancho" data-accion="borrar-todo">Borrar todos los datos</button>' +
+      '</div></section>' +
+      '</div></div></main>';
+  };
+
+  V['perfil-form'] = function (app) {
+    const s = app.store;
+    const p = app.params.id ? s.perfil(app.params.id) : null;
+    const primero = s.perfiles.length === 0;
+    return '<main class="pantalla">' + ui.encabezado(p ? 'Editar perfil' : 'Nuevo perfil', primero ? null : (app.params.volver || 'padre-ajustes')) +
+      (primero ? '<p class="texto-suave">Creá el perfil de tu hijo o hija. Después podés agregar más.</p>' : '') +
+      '<form class="formulario" data-form="perfil">' +
+      '<label for="nombre">Nombre</label><input id="nombre" name="nombre" type="text" maxlength="40" required value="' + esc(p ? p.nombre : '') + '">' +
+      '<label for="anio">Año que cursa (opcional)</label><input id="anio" name="anio" type="text" maxlength="20" placeholder="Ej.: 1.º año" value="' + esc(p ? p.anio : '') + '">' +
+      '<label for="mascota">Nombre de la mascota</label><input id="mascota" name="mascota" type="text" maxlength="20" placeholder="Lo puede elegir el chico" value="' + esc(p ? p.mascota.nombre : '') + '">' +
+      '<button class="boton primario ancho" type="submit">' + (p ? 'Guardar' : 'Crear perfil') + '</button></form>' +
+      (p ? '<button type="button" class="boton peligro ancho" data-accion="borrar-perfil" data-id="' + p.id + '">' + ui.icono('basura', 18) + 'Borrar perfil y todos sus datos</button>' : '') +
+      '</main>';
+  };
+
+  V['premio-form'] = function (app) {
+    const s = app.store;
+    const pr = app.params.id ? s.premios.find((x) => x.id === app.params.id) : null;
+    const ideas = ['30 minutos más de consola', 'Elegir la cena del viernes', 'Invitar a un amigo a casa', 'Salida al cine'];
+    return '<main class="pantalla">' + ui.encabezado(pr ? 'Editar premio' : 'Nuevo premio', 'padre-ajustes') +
+      '<form class="formulario" data-form="premio">' +
+      '<label for="nombre">Premio</label><input id="nombre" name="nombre" type="text" maxlength="60" required list="ideas-premios" value="' + esc(pr ? pr.nombre : '') + '">' +
+      '<datalist id="ideas-premios">' + ideas.map((i) => '<option value="' + i + '"></option>').join('') + '</datalist>' +
+      '<label for="precio">Precio en monedas</label><input id="precio" name="precio" type="number" min="1" step="1" required value="' + (pr ? pr.precio : '') + '">' +
+      '<button class="boton primario ancho" type="submit">' + (pr ? 'Guardar' : 'Agregar premio') + '</button></form>' +
+      (pr ? '<button type="button" class="boton peligro ancho" data-accion="borrar-premio" data-id="' + pr.id + '">' + ui.icono('basura', 18) + 'Borrar premio</button>' : '') +
+      '</main>';
+  };
+})(globalThis.AQ = globalThis.AQ || {});
+
+</script>
+  <script>
+/* js/views-pomodoro.js */
+/*
+ * views-pomodoro.js — Pantalla del Pomodoro: elegir tiempos, cuenta regresiva y descanso.
+ * Los números que cambian cada segundo (#pomo-tiempo, #pomo-anillo) los actualiza
+ * App._pintarPomodoro() sin volver a dibujar toda la pantalla.
+ */
+(function (AQ) {
+  'use strict';
+
+  const { util, reglas, ui, pomodoro } = AQ;
+  const esc = util.esc;
+  const V = AQ.vistas = AQ.vistas || {};
+
+  const RADIO = 108;
+  const CIRCUNFERENCIA = 2 * Math.PI * RADIO;
+
+  V.anilloPomodoro = { RADIO, CIRCUNFERENCIA };
+
+  function chips(nombre, opciones, elegido, sufijo) {
+    return opciones.map((n) =>
+      '<label class="chip-radio chip-tiempo"><input type="radio" name="' + nombre + '" value="' + n + '"' + (n === elegido ? ' checked' : '') + '>' +
+      '<span><b>' + n + '</b> ' + sufijo + '</span></label>').join('');
+  }
+
+  V.pomodoro = function (app) {
+    const s = app.store;
+    const T = app.temporizador;
+    const p = app.perfil();
+    const hoyMonedas = s.monedasPomodoroHoy(p.id);
+    const tope = reglas.MONEDAS.TOPE_POMODORO_DIA;
+    const estudio = s.estudio(p.id, 1);
+
+    // Un pomodoro de otro perfil sigue corriendo en este dispositivo.
+    if (T.activo && T.estado.perfilId !== p.id) {
+      const otro = s.perfil(T.estado.perfilId);
+      return '<main class="pantalla con-nav">' + ui.encabezado('Pomodoro', null) +
+        ui.vacio('Hay un pomodoro de ' + esc(otro ? otro.nombre : 'otro perfil') + ' en curso en este dispositivo.',
+          '<button type="button" class="boton secundario" data-accion="pomo-terminar">Terminarlo</button>') +
+        ui.navEstudiante('pomodoro') + '</main>';
+    }
+
+    if (!T.activo) {
+      const pref = app.preferenciasPomodoro || { foco: 25, descanso: 5 };
+      const pendientes = s.tareasDe(p.id).filter((t) => t.estado === 'pendiente').sort((a, b) => a.vence.localeCompare(b.vence));
+      const opcionesTarea = pendientes.map((t) => {
+        const m = s.materia(t.materiaId);
+        return '<option value="' + t.id + '">' + esc((m ? m.nombre + ': ' : '') + t.titulo) + '</option>';
+      }).join('');
+      return '<main class="pantalla con-nav">' + ui.encabezado('Pomodoro', null) +
+        '<p class="texto-suave">Estudiás sin distraerte un rato fijo y después descansás. Cada pomodoro completo suma monedas.</p>' +
+        '<form class="formulario" data-form="pomodoro">' +
+        '<fieldset><legend>¿Cuánto dura cada pomodoro?</legend><div class="grilla-tiempos">' + chips('foco', pomodoro.OPCIONES_FOCO, pref.foco, 'min') + '</div></fieldset>' +
+        '<fieldset><legend>¿Y cada descanso?</legend><div class="grilla-tiempos tres">' + chips('descanso', pomodoro.OPCIONES_DESCANSO, pref.descanso, 'min') + '</div></fieldset>' +
+        (opcionesTarea ? '<label for="tareaId">¿En qué vas a trabajar? (opcional)</label>' +
+          '<select id="tareaId" name="tareaId"><option value="">Nada en particular</option>' + opcionesTarea + '</select>' : '') +
+        '<div class="aviso-monedas">' + ui.moneda(18) + '<span>Suma <strong>1 moneda cada 5 minutos</strong> de foco (25 min = +5). Hoy llevás ' + hoyMonedas + ' de ' + tope + '.</span></div>' +
+        '<button class="boton primario ancho grande" type="submit">' + ui.icono('reloj', 22) + 'Empezar</button>' +
+        '</form>' +
+        (estudio.pomodoros ? '<p class="texto-chico centro">Hoy: ' + estudio.pomodoros + (estudio.pomodoros === 1 ? ' pomodoro, ' : ' pomodoros, ') + estudio.minutos + ' minutos de foco.</p>' : '') +
+        ui.navEstudiante('pomodoro') + '</main>';
+    }
+
+    const e = T.estado;
+    const fase = e.fase;
+    const tarea = e.tareaId ? s.tarea(e.tareaId) : null;
+    const restante = T.restante();
+    const total = T.total();
+    const offset = fase === 'listo' ? 0 : CIRCUNFERENCIA * (1 - restante / total);
+    const titulos = { foco: 'A concentrarse', descanso: 'Descanso', listo: '¡Descanso terminado!' };
+    const color = fase === 'foco' ? 'var(--lima)' : 'var(--azul)';
+
+    let botones;
+    if (fase === 'listo') {
+      botones = '<button type="button" class="boton primario ancho grande" data-accion="pomo-otro">Otro pomodoro de ' + e.foco + ' min</button>' +
+        '<button type="button" class="boton secundario ancho" data-accion="pomo-terminar">Terminar por hoy</button>';
+    } else {
+      botones = (T.pausado
+        ? '<button type="button" class="boton primario ancho grande" data-accion="pomo-reanudar">Seguir</button>'
+        : '<button type="button" class="boton secundario ancho grande" data-accion="pomo-pausar">Pausar</button>') +
+        (fase === 'descanso' ? '<button type="button" class="boton secundario ancho" data-accion="pomo-saltar">Saltar el descanso</button>' : '') +
+        '<button type="button" class="boton peligro ancho" data-accion="pomo-terminar">Terminar</button>';
+    }
+
+    return '<main class="pantalla con-nav pomodoro-pantalla fase-' + fase + '">' +
+      ui.encabezado('Pomodoro', null, '<span class="chip-mini">' + e.foco + ' + ' + e.descanso + ' min</span>') +
+      '<section class="reloj-pomodoro" aria-label="Temporizador">' +
+      '<p class="fase-pomodoro" style="color:' + color + '">' + titulos[fase] + (T.pausado ? ' · en pausa' : '') + '</p>' +
+      '<div class="anillo">' +
+      '<svg viewBox="0 0 240 240" aria-hidden="true">' +
+      '<circle cx="120" cy="120" r="' + RADIO + '" fill="none" stroke="#262A3A" stroke-width="14"></circle>' +
+      '<circle id="pomo-anillo" cx="120" cy="120" r="' + RADIO + '" fill="none" stroke="' + color + '" stroke-width="14" stroke-linecap="butt"' +
+      ' stroke-dasharray="' + CIRCUNFERENCIA.toFixed(2) + '" stroke-dashoffset="' + offset.toFixed(2) + '" transform="rotate(-90 120 120)"></circle>' +
+      '</svg>' +
+      '<div class="anillo-centro">' +
+      (fase === 'listo'
+        ? AQ.dibujarMascota({ etapa: app.store.mascota(p.id).etapa, estado: 'feliz', color: app.store.mascota(p.id).color, tamanio: 96 })
+        : '<span id="pomo-tiempo" class="tiempo-grande" role="timer" aria-live="off">' + pomodoro.formatear(restante) + '</span>' +
+          '<span class="texto-chico">' + (fase === 'foco' ? 'para el descanso' : 'para volver') + '</span>') +
+      '</div></div>' +
+      (tarea ? '<p class="tarea-pomodoro">' + ui.puntoMateria(s.materia(tarea.materiaId)) + esc(tarea.titulo) + '</p>' : '') +
+      '<p class="texto-chico centro">Pomodoros completos en esta sesión: <b>' + e.completados + '</b>' +
+      (fase === 'foco' ? '<br>Al terminar este: +' + Math.min(Math.floor(e.foco / 5) * reglas.MONEDAS.POMODORO_POR_5_MIN, Math.max(0, tope - hoyMonedas)) + ' monedas' : '') + '</p>' +
+      (fase === 'foco' ? '<p class="consejo">Dejá el celular boca abajo y la carpeta abierta. Si te acordás de algo, anotalo y seguí.</p>' : '') +
+      (fase === 'descanso' ? '<p class="consejo">Levantate, tomá agua, estirate. Mejor sin pantallas.</p>' : '') +
+      '</section>' +
+      '<div class="acciones">' + botones + '</div>' +
+      ui.navEstudiante('pomodoro') + '</main>';
+  };
+})(globalThis.AQ = globalThis.AQ || {});
+
+</script>
+  <script>
+/* js/app.js */
+/*
+ * app.js — Controlador: navegación entre pantallas, eventos y arranque.
+ *
+ * Flujo: el usuario toca algo → un manejador llama al Store → el Store guarda
+ * y avisa (Observer) → la App vuelve a dibujar la pantalla actual.
+ */
+(function (AQ) {
+  'use strict';
+
+  const { Fecha } = AQ;
+
+  const PANTALLAS_PADRE = ['padre', 'padre-ajustes', 'perfil-form', 'premio-form'];
+  const PANTALLAS_ESTUDIANTE = ['hoy', 'tarea-form', 'tarea', 'examenes', 'examen-form', 'examen', 'materias', 'materia-form', 'mascota', 'pomodoro'];
+  const TITULOS = {
+    hoy: 'Hoy', perfiles: 'Perfiles', padre: 'Panel del padre', mascota: 'Mascota', examenes: 'Exámenes', materias: 'Materias', pomodoro: 'Pomodoro'
+  };
+
+  function almacenSeguro() {
+    try { return globalThis.localStorage || null; } catch (e) { return null; }
+  }
+
+  /** Achica la foto para que entre en el almacenamiento del navegador. */
+  function comprimirImagen(archivo, maximo, calidad) {
+    return new Promise((resolver, rechazar) => {
+      const lector = new FileReader();
+      lector.onerror = () => rechazar(new Error('No se pudo leer la foto.'));
+      lector.onload = () => {
+        const img = new Image();
+        img.onerror = () => rechazar(new AQ.ErrorValidacion('Ese archivo no parece una imagen.'));
+        img.onload = () => {
+          const escala = Math.min(1, maximo / Math.max(img.width, img.height));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(img.width * escala);
+          canvas.height = Math.round(img.height * escala);
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolver(canvas.toDataURL('image/jpeg', calidad));
+        };
+        img.src = lector.result;
+      };
+      lector.readAsDataURL(archivo);
+    });
+  }
+
+  function descargar(nombre, texto) {
+    const blob = new Blob([texto], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nombre;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  class App {
+    constructor(store, raiz, zonaAvisos, zonaDialogo) {
+      this.store = store;
+      this.raiz = raiz;
+      this.zonaAvisos = zonaAvisos;
+      this.zonaDialogo = zonaDialogo;
+      this.pantalla = 'perfiles';
+      this.params = {};
+      this.perfilId = null;
+      this.padreDesbloqueado = false;
+      this.historial = [];
+      this.devolviendo = null;
+      this.felizHasta = 0;
+      this.fotoTemporal = null;
+      this.temporizador = new AQ.Temporizador(almacenSeguro());
+      this.sonido = new AQ.Sonido();
+      this.preferenciasPomodoro = { foco: 25, descanso: 5 };
+      if (this.temporizador.activo) {
+        this.preferenciasPomodoro = { foco: this.temporizador.estado.foco, descanso: this.temporizador.estado.descanso };
+      }
+      this.barraPomodoro = document.getElementById('pomo-barra');
+      this.mensajeFeliz = null;
+      this.diaActual = Fecha.hoy();
+      this.store.suscribir(() => this.render());
+      this._escuchar();
+      this._iniciarReloj();
+    }
+
+    // ---------- Pomodoro ----------
+    _iniciarReloj() {
+      setInterval(() => this._tickPomodoro(), 500);
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          this._tickPomodoro();
+          if (this.temporizador.activo) this._mantenerPantalla(true);
+        }
+      });
+      if (this.barraPomodoro) {
+        this.barraPomodoro.addEventListener('click', (ev) => {
+          if (!ev.target.closest('button')) return;
+          if (this.temporizador.activo) this.perfilId = this.temporizador.estado.perfilId;
+          this.ir('pomodoro');
+        });
+      }
+    }
+
+    /** Descuenta vida por los días sin comer. Avisa si la mascota del perfil actual perdió vida. */
+    _actualizarVidas() {
+      this.store.perfiles.forEach((p) => {
+        const perdidas = this.store.actualizarVida(p.id);
+        if (perdidas && p.id === this.perfilId && !this.modoPadre) {
+          this.aviso(p.mascota.nombre + ' pasó ' + perdidas + (perdidas === 1 ? ' día' : ' días') + ' sin comer y perdió ' + perdidas + ' de vida. ¡Dale de comer!', 'error');
+        }
+      });
+    }
+
+    _tickPomodoro() {
+      if (this.diaActual !== Fecha.hoy()) {
+        // Pasó la medianoche con la app abierta.
+        this.diaActual = Fecha.hoy();
+        this._actualizarVidas();
+        this.render();
+      }
+      const T = this.temporizador;
+      if (!T.activo) { this._pintarPomodoro(); return; }
+      const ev = T.tick();
+      if (!ev) { this._pintarPomodoro(); return; }
+      if (ev.tipo === 'foco-completo') {
+        let monedas = 0;
+        try { monedas = this.store.registrarPomodoro(ev.perfilId, ev.minutos, ev.tareaId); } catch (e) { console.error(e); }
+        this.sonido.tocar(true);
+        if (ev.perfilId === this.perfilId) { this.felizHasta = Date.now() + 3500; this.mensajeFeliz = '¡Pomodoro completo! Ahora a descansar.'; }
+        this.aviso(monedas > 0
+          ? '¡Pomodoro completo! +' + monedas + ' monedas. Ahora, ' + T.estado.descanso + ' min de descanso.'
+          : '¡Pomodoro completo! Ya llegaste al tope de monedas de hoy, pero el estudio cuenta igual.', 'ok');
+      } else {
+        this.sonido.tocar(false);
+        this.aviso('Terminó el descanso. ¿Otro pomodoro?', 'ok');
+      }
+      this.render();
+    }
+
+    /** Actualiza el reloj, el anillo, la barra fija y el título sin redibujar la pantalla. */
+    _pintarPomodoro() {
+      const T = this.temporizador;
+      const barra = this.barraPomodoro;
+      const texto = T.activo && T.estado.fase !== 'listo' ? AQ.pomodoro.formatear(T.restante()) : '';
+      const reloj = this.raiz.querySelector('#pomo-tiempo');
+      if (reloj && reloj.textContent !== texto) reloj.textContent = texto;
+      const anillo = this.raiz.querySelector('#pomo-anillo');
+      if (anillo && T.activo) {
+        const C = AQ.vistas.anilloPomodoro.CIRCUNFERENCIA;
+        anillo.setAttribute('stroke-dashoffset', (C * (1 - T.restante() / T.total())).toFixed(2));
+      }
+      const fases = { foco: 'Foco', descanso: 'Descanso', listo: 'Listo' };
+      const base = (TITULOS[this.pantalla] ? TITULOS[this.pantalla] + ' · ' : '') + 'AgendaQuest';
+      document.title = T.activo ? (texto ? texto + ' ' : '') + fases[T.estado.fase] + ' · ' + base : base;
+
+      if (!barra) return;
+      // Visible en todas las pantallas menos la del propio pomodoro, que ya lo muestra grande.
+      const mostrar = T.activo && this.pantalla !== 'pomodoro';
+      barra.hidden = !mostrar;
+      document.body.classList.toggle('con-barra-pomo', mostrar);
+      if (!mostrar) return;
+      const e = T.estado;
+      const perfil = this.store.perfil(e.perfilId);
+      const etiqueta = e.fase === 'listo' ? 'Descanso terminado · ¿otro?' : fases[e.fase] + (T.pausado ? ' (pausa)' : '');
+      const html = '<button type="button" class="pomo-barra-boton fase-' + e.fase + '" aria-label="Ir al pomodoro">' +
+        '<span class="pomo-punto"></span><span class="pomo-etiqueta">' + AQ.util.esc(etiqueta) +
+        (perfil && e.perfilId !== this.perfilId ? ' · ' + AQ.util.esc(perfil.nombre) : '') + '</span>' +
+        '<span class="pomo-barra-tiempo">' + texto + '</span><span class="pomo-ver">Ver</span></button>';
+      if (barra.dataset.html !== html) { barra.innerHTML = html; barra.dataset.html = html; }
+    }
+
+    /** Pide que la pantalla no se apague durante el pomodoro (si el navegador lo permite). */
+    _mantenerPantalla(si) {
+      try {
+        if (si && navigator.wakeLock && !this.bloqueoPantalla) {
+          navigator.wakeLock.request('screen').then((b) => {
+            this.bloqueoPantalla = b;
+            b.addEventListener('release', () => { this.bloqueoPantalla = null; });
+          }).catch(() => {});
+        }
+        if (!si && this.bloqueoPantalla) { this.bloqueoPantalla.release().catch(() => {}); this.bloqueoPantalla = null; }
+      } catch (e) { /* no disponible */ }
+    }
+
+    get modoPadre() { return this.padreDesbloqueado; }
+    perfil() { return this.store.perfil(this.perfilId); }
+    felizActivo() { return Date.now() < this.felizHasta; }
+
+    iniciar() {
+      this._actualizarVidas();
+      this.ir(this.store.tienePin() ? 'perfiles' : 'bienvenida', {}, { sinHistorial: true });
+    }
+
+    /** Navegar a una pantalla. opciones: sinHistorial (no guardar la actual), reemplazar. */
+    ir(pantalla, params, opciones) {
+      const op = opciones || {};
+      params = params || {};
+      if (PANTALLAS_PADRE.includes(pantalla) && !this.padreDesbloqueado) {
+        return this.ir('pin', { destino: pantalla }, op);
+      }
+      if (PANTALLAS_ESTUDIANTE.includes(pantalla) && !this.perfil()) {
+        return this.ir('perfiles', {}, { sinHistorial: true });
+      }
+      if (!op.sinHistorial && !op.reemplazar && this.pantalla !== pantalla) {
+        this.historial.push({ pantalla: this.pantalla, params: this.params });
+        if (this.historial.length > 30) this.historial.shift();
+      }
+      if (pantalla === 'tarea-form') {
+        const t = params.id ? this.store.tarea(params.id) : null;
+        this.fotoTemporal = t ? t.foto : null;
+      }
+      this.pantalla = pantalla;
+      this.params = params;
+      this.devolviendo = null;
+      this.render();
+      window.scrollTo(0, 0);
+      const titulo = this.raiz.querySelector('h1');
+      const conFoco = this.raiz.querySelector('[autofocus]');
+      if (conFoco) conFoco.focus();
+      else if (titulo) { titulo.setAttribute('tabindex', '-1'); titulo.focus({ preventScroll: true }); }
+    }
+
+    atras(respaldo) {
+      const anterior = this.historial.pop();
+      if (anterior) this.ir(anterior.pantalla, anterior.params, { sinHistorial: true });
+      else this.ir(respaldo || 'perfiles', {}, { sinHistorial: true });
+    }
+
+    render() {
+      const vista = AQ.vistas[this.pantalla];
+      this.raiz.innerHTML = vista ? vista(this) : '';
+      this.raiz.dataset.pantalla = this.pantalla;
+      this._pintarPomodoro();
+    }
+
+    /**
+     * Diálogo propio (en lugar de confirm/prompt del navegador, que algunos visores bloquean).
+     * op: { titulo, mensaje, confirmar, cancelar, peligro, escribir (texto exacto a tipear),
+     *       area (true: campo de texto grande), valor, soloLectura }
+     * Devuelve una promesa: true (o el texto ingresado) si confirma, false si cancela.
+     */
+    dialogo(op) {
+      const zona = this.zonaDialogo;
+      const previo = document.activeElement;
+      const esc = AQ.util.esc;
+      const conCampo = op.escribir || op.area;
+      zona.innerHTML =
+        '<div class="fondo-dialogo">' +
+        '<div class="dialogo" role="dialog" aria-modal="true" aria-labelledby="dialogo-titulo">' +
+        '<h2 id="dialogo-titulo" class="titulo-chico">' + esc(op.titulo) + '</h2>' +
+        (op.mensaje ? '<p class="texto-suave">' + esc(op.mensaje) + '</p>' : '') +
+        (op.escribir ? '<label for="dialogo-campo" class="texto-chico">Escribí <b>' + esc(op.escribir) + '</b> para confirmar</label><input id="dialogo-campo" type="text" autocomplete="off">' : '') +
+        (op.area ? '<textarea id="dialogo-campo" rows="8"' + (op.soloLectura ? ' readonly' : '') + ' aria-label="' + esc(op.titulo) + '">' + esc(op.valor || '') + '</textarea>' : '') +
+        '<div class="fila-botones">' +
+        (op.cancelar === null ? '' : '<button type="button" class="boton secundario" data-dialogo="no">' + esc(op.cancelar || 'Cancelar') + '</button>') +
+        '<button type="button" class="boton ' + (op.peligro ? 'peligro-lleno' : 'primario') + ' confirmar" data-dialogo="si">' + esc(op.confirmar || 'Aceptar') + '</button>' +
+        '</div></div></div>';
+      const campo = zona.querySelector('#dialogo-campo');
+      const botonSi = zona.querySelector('[data-dialogo="si"]');
+      (campo && !op.soloLectura ? campo : botonSi).focus();
+      if (campo && op.soloLectura) campo.select();
+      return new Promise((resolver) => {
+        const cerrar = (valor) => {
+          zona.innerHTML = '';
+          document.removeEventListener('keydown', tecla, true);
+          if (previo && document.body.contains(previo)) previo.focus();
+          resolver(valor);
+        };
+        const tecla = (ev) => {
+          if (ev.key === 'Escape') { ev.preventDefault(); cerrar(false); }
+          if (ev.key === 'Tab') {
+            const focos = Array.from(zona.querySelectorAll('button, input, textarea'));
+            const i = focos.indexOf(document.activeElement);
+            if (ev.shiftKey && i <= 0) { ev.preventDefault(); focos[focos.length - 1].focus(); }
+            else if (!ev.shiftKey && i === focos.length - 1) { ev.preventDefault(); focos[0].focus(); }
+          }
+          if (ev.key === 'Enter' && campo && campo.tagName === 'INPUT') { ev.preventDefault(); botonSi.click(); }
+        };
+        document.addEventListener('keydown', tecla, true);
+        zona.querySelector('.fondo-dialogo').addEventListener('click', (ev) => {
+          const b = ev.target.closest('[data-dialogo]');
+          if (ev.target.classList.contains('fondo-dialogo')) return cerrar(false);
+          if (!b) return;
+          if (b.dataset.dialogo === 'no') return cerrar(false);
+          if (op.escribir) {
+            if (campo.value.trim().toUpperCase() !== op.escribir) { campo.focus(); campo.setAttribute('aria-invalid', 'true'); return; }
+            return cerrar(true);
+          }
+          cerrar(op.area && !op.soloLectura ? campo.value : true);
+        });
+      });
+    }
+
+    aviso(texto, tipo) {
+      while (this.zonaAvisos.children.length >= 2) this.zonaAvisos.firstElementChild.remove();
+      const el = document.createElement('div');
+      el.className = 'aviso ' + (tipo || '');
+      el.setAttribute('role', tipo === 'error' ? 'alert' : 'status');
+      el.textContent = texto;
+      this.zonaAvisos.appendChild(el);
+      setTimeout(() => el.classList.add('saliendo'), 3200);
+      setTimeout(() => el.remove(), 3600);
+    }
+
+    _proteger(fn) {
+      try {
+        const r = fn();
+        if (r && typeof r.catch === 'function') r.catch((e) => this._error(e));
+      } catch (e) { this._error(e); }
+    }
+
+    _error(e) {
+      if (e instanceof AQ.ErrorValidacion || e instanceof AQ.ErrorAlmacenamiento) this.aviso(e.message, 'error');
+      else { console.error(e); this.aviso('Algo salió mal. Probá de nuevo.', 'error'); }
+    }
+
+    _escuchar() {
+      this.raiz.addEventListener('click', (ev) => {
+        const el = ev.target.closest('[data-accion]');
+        if (!el || el.disabled) return;
+        const fn = this.acciones[el.dataset.accion];
+        if (fn) { ev.preventDefault(); this._proteger(() => fn.call(this, el)); }
+      });
+      this.raiz.addEventListener('submit', (ev) => {
+        const form = ev.target.closest('form[data-form]');
+        if (!form) return;
+        ev.preventDefault();
+        const fn = this.formularios[form.dataset.form];
+        const datos = Object.fromEntries(new FormData(form).entries());
+        if (ev.submitter && ev.submitter.name) datos[ev.submitter.name] = ev.submitter.value;
+        if (fn) this._proteger(() => fn.call(this, form, datos));
+      });
+      this.raiz.addEventListener('change', (ev) => {
+        const el = ev.target.closest('[data-cambio]');
+        if (!el) return;
+        const fn = this.cambios[el.dataset.cambio];
+        if (fn) this._proteger(() => fn.call(this, el));
+      });
+    }
+
+    _importarTexto(texto) {
+      this.store.importar(texto);
+      this.padreDesbloqueado = false;
+      this.perfilId = null;
+      this.historial = [];
+      this.iniciar();
+      this.aviso('Copia importada.', 'ok');
+    }
+
+    _entrarComoPadre() {
+      this.padreDesbloqueado = true;
+      let bonos = 0;
+      this.store.perfiles.forEach((p) => { bonos += this.store.evaluarSemanas(p.id); });
+      if (bonos) this.aviso('Se acreditaron bonos de semana sin vencidas.', 'ok');
+      if (!this.perfilId && this.store.perfiles[0]) this.perfilId = this.store.perfiles[0].id;
+    }
+  }
+
+  // ---------- Acciones (clics) ----------
+  App.prototype.acciones = {
+    ir(el) {
+      const params = {};
+      if (el.dataset.id) params.id = el.dataset.id;
+      if (el.dataset.volver) params.volver = el.dataset.volver;
+      this.ir(el.dataset.pantalla, params);
+    },
+    atras(el) { this.atras(el.dataset.pantalla); },
+
+    entrar(el) {
+      this.perfilId = el.dataset.id;
+      this.padreDesbloqueado = false;
+      this.historial = [];
+      this._actualizarVidas();
+      const bono = this.store.evaluarSemanas(this.perfilId);
+      this.ir('hoy', {}, { sinHistorial: true });
+      if (bono) this.aviso('¡Bono! +' + bono + ' monedas por semanas sin tareas vencidas.', 'ok');
+    },
+
+    'pedir-pin'(el) {
+      if (this.padreDesbloqueado) this.ir(el.dataset.destino);
+      else this.ir('pin', { destino: el.dataset.destino });
+    },
+
+    marcar(el) {
+      this.store.marcarHecha(el.dataset.id);
+      this.felizHasta = Date.now() + 3500;
+      this.mensajeFeliz = '¡Bien ahí! Cuando tu papá la apruebe, sumás monedas.';
+      if (this.pantalla === 'tarea') this.atras('hoy');
+      else this.render();
+      setTimeout(() => { if (!this.felizActivo()) this.render(); }, 3600);
+      this.aviso('¡Bien! Ahora tu papá la revisa.', 'ok');
+    },
+
+    desmarcar(el) {
+      this.store.desmarcar(el.dataset.id);
+      this.felizHasta = 0;
+    },
+
+    async 'borrar-tarea'(el) {
+      const t = this.store.tarea(el.dataset.id);
+      if (!t) return;
+      const descuento = t.creadaPor === 'estudiante' ? 'Se descuentan las ' + AQ.reglas.MONEDAS.ANOTAR + ' monedas que dio anotarla.' : '';
+      if (!await this.dialogo({ titulo: '¿Borrar "' + t.titulo + '"?', mensaje: descuento, confirmar: 'Borrar', peligro: true })) return;
+      this.store.eliminarTarea(t.id);
+      if (this.pantalla === 'tarea') this.atras(this.modoPadre ? 'padre' : 'hoy');
+      this.aviso('Tarea borrada.');
+    },
+
+    'fecha-rapida'(el) {
+      const input = this.raiz.querySelector('#vence');
+      if (input) input.value = el.dataset.valor;
+    },
+
+    'quitar-foto'() {
+      this.fotoTemporal = null;
+      const prev = this.raiz.querySelector('#foto-preview');
+      if (prev) prev.innerHTML = '';
+    },
+
+    async 'borrar-examen'(el) {
+      if (!await this.dialogo({ titulo: '¿Borrar el examen?', mensaje: 'También se borran las sesiones de estudio que no se aprobaron.', confirmar: 'Borrar', peligro: true })) return;
+      this.store.eliminarExamen(el.dataset.id);
+      this.atras(this.modoPadre ? 'padre' : 'examenes');
+    },
+
+    async 'borrar-materia'(el) {
+      const m = this.store.materia(el.dataset.id);
+      if (!m || !await this.dialogo({ titulo: '¿Borrar la materia ' + m.nombre + '?', confirmar: 'Borrar', peligro: true })) return;
+      this.store.eliminarMateria(m.id);
+      this.atras('materias');
+    },
+
+    async canjear(el) {
+      const pr = this.store.premios.find((x) => x.id === el.dataset.id);
+      if (!pr || !await this.dialogo({ titulo: '¿Canjear "' + pr.nombre + '"?', mensaje: 'Cuesta ' + pr.precio + ' monedas. Después avisale a tu papá.', confirmar: 'Canjear' })) return;
+      this.store.canjear(this.perfilId, pr.id);
+      this.aviso('¡Canjeado! Avisale a tu papá para que te lo dé.', 'ok');
+    },
+
+    alimentar() {
+      const recupero = this.store.alimentar(this.perfilId);
+      this.felizHasta = Date.now() + 3500;
+      this.mensajeFeliz = recupero ? '¡Ñam, qué rico! Recuperé 1 de vida.' : '¡Ñam, qué rico! Gracias.';
+      this.render();
+      setTimeout(() => { if (!this.felizActivo()) this.render(); }, 3600);
+    },
+
+    vacaciones(el) {
+      const activo = el.dataset.valor === '1';
+      this.store.ponerVacaciones(this.perfilId, activo);
+      this.aviso(activo ? 'Modo vacaciones activado: la mascota no pierde vida.' : 'Modo vacaciones terminado. Desde mañana vuelve a necesitar comida.', 'ok');
+    },
+
+    comprar(el) {
+      this.store.comprarCosmetico(this.perfilId, el.dataset.tipo, el.dataset.id);
+      this.felizHasta = Date.now() + 2500;
+      this.mensajeFeliz = '¡Me encanta mi nuevo look!';
+      this.render();
+      this.aviso('¡Nuevo look para tu mascota!', 'ok');
+    },
+
+    equipar(el) { this.store.equipar(this.perfilId, el.dataset.tipo, el.dataset.id); },
+
+    'elegir-perfil-padre'(el) {
+      this.perfilId = el.dataset.id;
+      this.devolviendo = null;
+      this.render();
+    },
+
+    revision() {
+      const r = this.store.registrarRevision(this.perfilId);
+      this.aviso(r.bono ? '¡Racha de ' + r.racha + ' días! +' + r.bono + ' monedas.' : 'Revisión registrada. Racha: ' + r.racha + (r.racha === 1 ? ' día.' : ' días.'), 'ok');
+    },
+
+    aprobar(el) {
+      const t = this.store.tarea(el.dataset.id);
+      const monto = this.store.aprobar(el.dataset.id);
+      const p = this.store.perfil(t.perfilId);
+      this.aviso('Aprobada: +' + monto + ' monedas para ' + p.nombre + '.', 'ok');
+    },
+
+    devolver(el) {
+      this.devolviendo = el.dataset.id;
+      this.render();
+      const input = this.raiz.querySelector('.form-devolver input');
+      if (input) input.focus();
+    },
+
+    'cancelar-devolver'() { this.devolviendo = null; this.render(); },
+
+    entregado(el) { this.store.marcarEntregado(el.dataset.id); this.aviso('Canje marcado como entregado.', 'ok'); },
+
+    async 'cancelar-canje'(el) {
+      if (!await this.dialogo({ titulo: '¿Cancelar el canje?', mensaje: 'Las monedas vuelven al saldo.', confirmar: 'Cancelar canje', cancelar: 'Volver', peligro: true })) return;
+      this.store.cancelarCanje(el.dataset.id);
+      this.aviso('Canje cancelado, monedas devueltas.');
+    },
+
+    'pomo-pausar'() { this.temporizador.pausar(); this.render(); },
+    'pomo-reanudar'() { this.sonido.preparar(); this.temporizador.reanudar(); this._mantenerPantalla(true); this.render(); },
+    'pomo-saltar'() { this.temporizador.saltarDescanso(); this.render(); },
+    'pomo-otro'() {
+      this.sonido.preparar();
+      this.temporizador.otro();
+      this._mantenerPantalla(true);
+      this.render();
+    },
+    async 'pomo-terminar'() {
+      const T = this.temporizador;
+      if (T.activo && T.estado.fase === 'foco' && !await this.dialogo({
+        titulo: '¿Terminar el pomodoro?', mensaje: 'Si lo cortás ahora, este pomodoro no suma monedas.', confirmar: 'Terminar', cancelar: 'Seguir estudiando', peligro: true
+      })) return;
+      const hechos = T.activo ? T.estado.completados : 0;
+      T.terminar();
+      this._mantenerPantalla(false);
+      this.render();
+      if (hechos) this.aviso('¡Bien! Completaste ' + hechos + (hechos === 1 ? ' pomodoro.' : ' pomodoros.'), 'ok');
+    },
+
+    'salir-padre'() {
+      this.padreDesbloqueado = false;
+      this.historial = [];
+      this.ir('perfiles', {}, { sinHistorial: true });
+    },
+
+    exportar() {
+      // Dentro de un visor embebido (iframe) las descargas suelen estar bloqueadas: se ofrece copiar el texto.
+      if (window.self !== window.top) return this.acciones['copiar-copia'].call(this);
+      descargar('agendaquest-copia-' + Fecha.hoy() + '.json', this.store.exportar());
+      this.aviso('Si no apareció la descarga, usá "Copiar copia como texto".', 'ok');
+    },
+
+    async 'copiar-copia'() {
+      const texto = this.store.exportar();
+      try {
+        await navigator.clipboard.writeText(texto);
+        this.aviso('Copia copiada. Pegala en un archivo de texto o en un mail para vos.', 'ok');
+      } catch (e) {
+        await this.dialogo({ titulo: 'Copia de seguridad', mensaje: 'Seleccioná todo el texto y copialo a un lugar seguro.', area: true, valor: texto, soloLectura: true, confirmar: 'Listo', cancelar: null });
+      }
+    },
+
+    async 'pegar-copia'() {
+      const texto = await this.dialogo({ titulo: 'Pegar copia de seguridad', mensaje: 'Pegá el texto de una copia. Reemplaza todos los datos actuales de este navegador.', area: true, confirmar: 'Importar', peligro: true });
+      if (!texto) return;
+      this._importarTexto(texto);
+    },
+
+    importar() { const i = this.raiz.querySelector('#archivo-importar'); if (i) i.click(); },
+    'importar-inicio'() { const i = this.raiz.querySelector('#archivo-importar'); if (i) i.click(); },
+
+    async 'borrar-fotos'() {
+      if (!await this.dialogo({ titulo: '¿Borrar fotos de tareas aprobadas?', mensaje: 'Libera espacio. Las tareas quedan, solo se borran sus fotos.', confirmar: 'Borrar fotos', peligro: true })) return;
+      const n = this.store.borrarFotosAprobadas();
+      this.aviso(n ? 'Se borraron ' + n + (n === 1 ? ' foto.' : ' fotos.') : 'No había fotos para borrar.');
+    },
+
+    async 'borrar-todo'() {
+      const ok = await this.dialogo({ titulo: '¿Borrar todos los datos?', mensaje: 'Se borran perfiles, tareas, exámenes, monedas y el PIN. No se puede deshacer.', escribir: 'BORRAR', confirmar: 'Borrar todo', peligro: true });
+      if (!ok) return;
+      this.store.borrarTodo();
+      this.padreDesbloqueado = false;
+      this.perfilId = null;
+      this.historial = [];
+      this.iniciar();
+    },
+
+    async 'borrar-perfil'(el) {
+      const p = this.store.perfil(el.dataset.id);
+      if (!p || !await this.dialogo({ titulo: '¿Borrar el perfil de ' + p.nombre + '?', mensaje: 'Se borran sus tareas, exámenes, monedas y mascota. No se puede deshacer.', escribir: 'BORRAR', confirmar: 'Borrar perfil', peligro: true })) return;
+      this.store.eliminarPerfil(p.id);
+      if (this.perfilId === p.id) this.perfilId = this.store.perfiles[0] ? this.store.perfiles[0].id : null;
+      this.atras('padre-ajustes');
+    },
+
+    async 'borrar-premio'(el) {
+      if (!await this.dialogo({ titulo: '¿Borrar este premio?', confirmar: 'Borrar', peligro: true })) return;
+      this.store.eliminarPremio(el.dataset.id);
+      this.atras('padre-ajustes');
+    }
+  };
+
+  // ---------- Formularios ----------
+  App.prototype.formularios = {
+    'crear-pin'(form, d) {
+      if (d.pin1 !== d.pin2) throw new AQ.ErrorValidacion('Los dos PIN no coinciden.');
+      this.store.configurarPin(d.pin1);
+      this.padreDesbloqueado = true;
+      this.ir('perfil-form', {}, { sinHistorial: true });
+    },
+
+    pin(form, d) {
+      if (!this.store.verificarPin(d.pin)) {
+        this.ir('pin', { destino: this.params.destino, error: true }, { reemplazar: true });
+        return;
+      }
+      this._entrarComoPadre();
+      this.ir(this.params.destino || 'padre', {}, { reemplazar: true });
+    },
+
+    tarea(form, d) {
+      if (this.params.id) {
+        const t = this.store.tarea(this.params.id);
+        const cambios = t.tipo === 'sesion' ? { vence: d.vence } : { titulo: d.titulo, detalle: d.detalle, vence: d.vence, materiaId: d.materiaId, foto: this.fotoTemporal };
+        this.store.editarTarea(t.id, cambios);
+        this.aviso('Cambios guardados.', 'ok');
+        this.atras(this.modoPadre ? 'padre' : 'hoy');
+        return;
+      }
+      const eraHuevo = this.store.mascota(this.perfilId).etapa === 'huevo';
+      this.store.agregarTarea(this.perfilId, { materiaId: d.materiaId, titulo: d.titulo, detalle: d.detalle, vence: d.vence, foto: this.fotoTemporal }, this.modoPadre);
+      this.fotoTemporal = null;
+      if (this.modoPadre) {
+        this.aviso('Tarea agregada.', 'ok');
+      } else {
+        this.felizHasta = Date.now() + 3000;
+        this.mensajeFeliz = eraHuevo ? '¡Hola! Acabo de nacer. Dame de comer una vez por día.' : '¡Anotada! Así no se te olvida.';
+        setTimeout(() => { if (!this.felizActivo()) this.render(); }, 3100);
+        this.aviso(eraHuevo ? '¡Nació tu mascota! +' + AQ.reglas.MONEDAS.ANOTAR + ' monedas.' : 'Anotada. +' + AQ.reglas.MONEDAS.ANOTAR + ' monedas.', 'ok');
+      }
+      this.atras(this.modoPadre ? 'padre' : 'hoy');
+    },
+
+    examen(form, d) {
+      const x = this.store.agregarExamen(this.perfilId, d);
+      this.aviso('Examen agendado con su plan de estudio.', 'ok');
+      this.ir('examen', { id: x.id }, { reemplazar: true });
+    },
+
+    'nota-examen'(form, d) {
+      this.store.editarExamen(form.dataset.id, { nota: d.nota });
+      this.aviso('Nota guardada.', 'ok');
+    },
+
+    materia(form, d) {
+      if (this.params.id) {
+        this.store.editarMateria(this.params.id, d);
+        this.aviso('Materia guardada.', 'ok');
+        this.atras('materias');
+        return;
+      }
+      this.store.agregarMateria(this.perfilId, d);
+      this.aviso(d.nombre.trim() + ' agregada.', 'ok');
+      if (d.otra) this.ir('materia-form', { volver: this.params.volver }, { reemplazar: true });
+      else this.atras('materias');
+    },
+
+    perfil(form, d) {
+      const primero = this.store.perfiles.length === 0;
+      if (this.params.id) {
+        this.store.editarPerfil(this.params.id, d);
+        this.aviso('Perfil guardado.', 'ok');
+        this.atras('padre-ajustes');
+        return;
+      }
+      const p = this.store.agregarPerfil(d);
+      this.perfilId = p.id;
+      this.aviso('Perfil de ' + p.nombre + ' creado.', 'ok');
+      if (primero) {
+        this.padreDesbloqueado = false;
+        this.historial = [];
+        this.ir('perfiles', {}, { sinHistorial: true });
+      } else {
+        this.atras('padre-ajustes');
+      }
+    },
+
+    premio(form, d) {
+      if (this.params.id) this.store.editarPremio(this.params.id, d);
+      else this.store.agregarPremio(d);
+      this.aviso('Premio guardado.', 'ok');
+      this.atras('padre-ajustes');
+    },
+
+    devolver(form, d) {
+      this.store.devolver(form.dataset.id, d.nota);
+      this.devolviendo = null;
+      this.render();
+      this.aviso('Tarea devuelta con tu nota.');
+    },
+
+    pomodoro(form, d) {
+      this.sonido.preparar();
+      this.preferenciasPomodoro = { foco: Number(d.foco), descanso: Number(d.descanso) };
+      this.temporizador.iniciar(this.perfilId, d.foco, d.descanso, d.tareaId || null);
+      this._mantenerPantalla(true);
+      this.render();
+      window.scrollTo(0, 0);
+    },
+
+    'cambiar-pin'(form, d) {
+      this.store.cambiarPin(d.actual, d.nuevo);
+      form.reset();
+      this.aviso('PIN cambiado.', 'ok');
+    }
+  };
+
+  // ---------- Cambios en campos ----------
+  App.prototype.cambios = {
+    foto(el) {
+      const archivo = el.files && el.files[0];
+      if (!archivo) return;
+      return comprimirImagen(archivo, 1024, 0.6).then((url) => {
+        this.fotoTemporal = url;
+        const prev = this.raiz.querySelector('#foto-preview');
+        if (prev) prev.innerHTML = '<img src="' + url + '" alt="Foto adjunta"><button type="button" class="enlace" data-accion="quitar-foto">Quitar foto</button>';
+      });
+    },
+
+    plan(el) {
+      const lista = this.raiz.querySelector('#plan-preview');
+      if (lista) lista.innerHTML = AQ.vistas.planPreview(this, el.value);
+    },
+
+    importar(el) {
+      const archivo = el.files && el.files[0];
+      if (!archivo) return;
+      return archivo.text().then(async (texto) => {
+        el.value = '';
+        if (this.store.perfiles.length && !await this.dialogo({ titulo: '¿Importar la copia?', mensaje: 'Reemplaza todos los datos actuales de este navegador.', confirmar: 'Importar', peligro: true })) return;
+        this._importarTexto(texto);
+      });
+    }
+  };
+
+  AQ.App = App;
+
+  // ---------- Arranque ----------
+  if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+      const raiz = document.getElementById('app');
+      const avisos = document.getElementById('avisos');
+      const dialogo = document.getElementById('dialogo');
+      let store;
+      let sinGuardado = false;
+      try {
+        // Fase 2: cambiar esta línea por otro repositorio (por ejemplo, uno en la nube).
+        const repo = new AQ.LocalStorageRepository('agendaquest.v1');
+        try {
+          repo.almacenamiento.setItem('agendaquest.prueba', '1');
+          repo.almacenamiento.removeItem('agendaquest.prueba');
+        } catch (e) {
+          throw new AQ.ErrorAlmacenamiento('sin-acceso');
+        }
+        store = new AQ.Store(repo);
+      } catch (e) {
+        if (e.message === 'sin-acceso') {
+          // El navegador no deja guardar (ventana privada, visor bloqueado): funciona igual, sin memoria.
+          store = new AQ.Store(new AQ.MemoryRepository());
+          sinGuardado = true;
+        } else {
+          raiz.innerHTML = '<main class="pantalla centrada"><h1 class="titulo-pixel">No se pudieron cargar los datos</h1><p class="texto-suave">' +
+            AQ.util.esc(e.message) + '</p></main>';
+          return;
+        }
+      }
+      const app = new App(store, raiz, avisos, dialogo);
+      AQ.app = app;
+      app.iniciar();
+      if (sinGuardado) app.aviso('Este navegador no deja guardar datos: lo que cargues se pierde al cerrar.', 'error');
+    });
+  }
+})(globalThis.AQ = globalThis.AQ || {});
+
+</script>
+</body>
+</html>
