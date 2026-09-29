@@ -80,7 +80,8 @@ with sync_playwright() as p:
 
     paso('marcar hecha')
     page.click('.fila-tarea:has-text("Ejercicios 12") .casillero')
-    page.wait_for_selector('text=Esperando aprobación')
+    page.wait_for_selector('text=Falta que papá la valide')
+    assert page.inner_text('.pastilla-monedas').strip() == '13', 'marcar hecha debe dar +3'
     foto(page, '06-mascota-feliz')
 
     paso('detalle y editar')
@@ -181,7 +182,7 @@ with sync_playwright() as p:
     ctx2 = page.context
     page.set_viewport_size({'width': 1280, 'height': 900})
     foto(page, '10-padre')
-    page.click('button:has-text("Aprobar")')
+    page.click('button:has-text("Validar ·")')
     page.wait_for_selector('text=Nada por revisar')
     page.click('button:has-text("Sí, hoy la revisamos")')
     page.wait_for_selector('text=Hoy ya la hicieron')
@@ -217,13 +218,33 @@ with sync_playwright() as p:
     paso('devolver con nota')
     page.click('.nav-item:has-text("Hoy")')
     page.click('.fila-tarea:has-text("Cuestionario") .casillero')
-    page.click('[aria-label="Configuración"]')
-    page.click('button:has-text("Panel del padre")')
-    page.fill('#pin', '1234'); page.click('button:has-text("Entrar")')
+    page.click('.fila-tarea:has-text("Leer el cuento") .casillero')
+
+    paso('validar en el celular del chico')
+    page.click('button:has-text("Validar con papá (2)")')
+    page.fill('#dialogo-campo', '0000'); page.click('#dialogo [data-dialogo="si"]')
+    page.wait_for_selector('#dialogo >> text=PIN incorrecto')
+    page.fill('#dialogo-campo', '1234'); page.click('#dialogo [data-dialogo="si"]')
+    page.wait_for_selector('text=Validación de papá')
+    foto(page, '20-validar-celular')
+    antes = page.evaluate("AQ.app.store.saldo(AQ.app.perfilId)")
+    page.click('.item-aprobar:has-text("Leer el cuento") button:has-text("Validar ·")')
+    page.wait_for_timeout(200)
+    assert page.evaluate("AQ.app.store.saldo(AQ.app.perfilId)") == antes + 15
     page.click('button:has-text("Devolver con nota")')
     page.fill('.form-devolver input', 'Falta la pregunta 4')
     page.click('.form-devolver button[type=submit]')
-    page.wait_for_selector('text=Nada por revisar')
+    page.wait_for_selector('text=¡Todo revisado!')
+    foto(page, '21-validado')
+    page.click('button:has-text("Listo, devolver el celular")')
+    page.wait_for_selector('text=Papá: Falta la pregunta 4')
+    assert page.locator('button:has-text("Validar ·")').count() == 0
+    page.evaluate("AQ.app.ir('validar')")
+    assert page.evaluate("AQ.app.pantalla") == 'hoy', 'sin PIN no se puede volver a validar'
+
+    page.click('[aria-label="Configuración"]')
+    page.click('button:has-text("Panel del padre")')
+    page.fill('#pin', '1234'); page.click('button:has-text("Entrar")')
     page.click('button:has-text("Entregado")')
     page.click('button:has-text("Salir")')
     page.click('.tarjeta-perfil')

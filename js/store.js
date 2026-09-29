@@ -207,6 +207,11 @@
       });
     }
 
+    /**
+     * El estudiante marca la tarea como hecha: queda esperando la validación del padre.
+     * Da unas pocas monedas, una sola vez por tarea (desmarcar y volver a marcar no suma de nuevo).
+     * Devuelve las monedas acreditadas.
+     */
     marcarHecha(id) {
       const t = this.tarea(id);
       exigir(t && t.estado === 'pendiente', 'Esta tarea no está pendiente.');
@@ -214,6 +219,10 @@
         t.estado = 'enviada';
         t.enviadaEl = Fecha.hoy();
         t.nota = '';
+        if (t.premioHecha) return 0;
+        t.premioHecha = true;
+        this._movimiento(t.perfilId, M.HECHA, 'Hecha, falta validar: ' + t.titulo, t.id, 'hecha');
+        return M.HECHA;
       });
     }
 
@@ -262,10 +271,17 @@
       exigir(t, 'Tarea no encontrada.');
       exigir(t.estado !== 'aprobada', 'Una tarea aprobada no se puede borrar.');
       return this._confirmar('tareas', () => {
-        const premio = this.estado.movimientos.find((m) => m.ref === t.id && m.tipo === 'anotar');
-        if (premio) this._movimiento(t.perfilId, -premio.cantidad, 'Tarea borrada: ' + t.titulo, t.id, 'ajuste');
+        const premios = this.estado.movimientos.filter((m) => m.ref === t.id && (m.tipo === 'anotar' || m.tipo === 'hecha'));
+        const total = premios.reduce((s, m) => s + m.cantidad, 0);
+        if (total) this._movimiento(t.perfilId, -total, 'Tarea borrada: ' + t.titulo, t.id, 'ajuste');
         this.estado.tareas = this.estado.tareas.filter((x) => x.id !== id);
       });
+    }
+
+    /** Monedas que dio una tarea todavía no validada (anotarla + marcarla hecha): se descuentan si se borra. */
+    monedasDeTarea(id) {
+      return this.estado.movimientos.filter((m) => m.ref === id && (m.tipo === 'anotar' || m.tipo === 'hecha'))
+        .reduce((s, m) => s + m.cantidad, 0);
     }
 
     borrarFotosAprobadas() {

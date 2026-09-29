@@ -99,7 +99,7 @@
    */
   function hashPin(pin) {
     let h = 0x811c9dc5;
-    const texto = 'agendaquest:' + pin;
+    const texto = 'agendaquest:' + pin; // no cambiar: invalidaría los PIN ya creados
     for (let i = 0; i < texto.length; i++) {
       h ^= texto.charCodeAt(i);
       h = Math.imul(h, 0x01000193) >>> 0;
@@ -110,7 +110,7 @@
   function limitar(n, min, max) { return Math.max(min, Math.min(max, n)); }
 
   /** Nombre de la app: se cambia acá y en el <title> de index.html. */
-  AQ.NOMBRE_APP = 'AgendaQuest';
+  AQ.NOMBRE_APP = 'Al Día';
 
   AQ.Fecha = Fecha;
   AQ.util = { nuevoId, esc, hashPin, limitar };

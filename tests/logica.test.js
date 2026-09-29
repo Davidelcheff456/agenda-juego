@@ -42,13 +42,25 @@ prueba('PIN', () => {
   assert.throws(() => s.configurarPin('12a4'), AQ.ErrorValidacion);
 });
 
-prueba('anotar da +5 y aprobar a tiempo +15', () => {
+prueba('anotar +5, marcar hecha +3 y validar a tiempo +15', () => {
   const { s, p, m } = nuevoStore();
   const t = s.agregarTarea(p.id, { materiaId: m.id, titulo: 'Ej. 1 a 5', vence: '2026-09-29' });
   assert.strictEqual(s.saldo(p.id), 5);
-  s.marcarHecha(t.id);
+  assert.strictEqual(s.marcarHecha(t.id), 3);
+  assert.strictEqual(s.saldo(p.id), 8);
   assert.strictEqual(s.aprobar(t.id), 15);
-  assert.strictEqual(s.saldo(p.id), 20);
+  assert.strictEqual(s.saldo(p.id), 23);
+});
+
+prueba('marcar hecha da monedas una sola vez por tarea', () => {
+  const { s, p, m } = nuevoStore();
+  const t = s.agregarTarea(p.id, { materiaId: m.id, titulo: 'X', vence: '2026-09-29' });
+  s.marcarHecha(t.id);
+  s.desmarcar(t.id);
+  assert.strictEqual(s.marcarHecha(t.id), 0);
+  s.devolver(t.id, 'falta algo');
+  assert.strictEqual(s.marcarHecha(t.id), 0);
+  assert.strictEqual(s.saldo(p.id), 8);
 });
 
 prueba('tarea del padre no da +5', () => {
@@ -72,12 +84,15 @@ prueba('devolver vuelve a pendiente con nota, sin monedas', () => {
   s.devolver(t.id, 'Falta el punto 3');
   assert.strictEqual(s.tarea(t.id).estado, 'pendiente');
   assert.strictEqual(s.tarea(t.id).nota, 'Falta el punto 3');
-  assert.strictEqual(s.saldo(p.id), 5);
+  assert.strictEqual(s.saldo(p.id), 8); // conserva lo de anotar y marcar, no suma lo de validar
 });
 
-prueba('borrar tarea descuenta el +5 y no suma xp', () => {
+prueba('borrar tarea descuenta lo que dio y no suma xp', () => {
   const { s, p, m } = nuevoStore();
   const t = s.agregarTarea(p.id, { materiaId: m.id, titulo: 'X', vence: '2026-09-29' });
+  s.marcarHecha(t.id);
+  assert.strictEqual(s.monedasDeTarea(t.id), 8);
+  s.desmarcar(t.id);
   s.eliminarTarea(t.id);
   assert.strictEqual(s.saldo(p.id), 0);
   assert.strictEqual(s.xp(p.id), 0);
@@ -171,7 +186,7 @@ prueba('vida: modo vacaciones pausa el hambre', () => {
 
 prueba('canje descuenta y cancelar reintegra', () => {
   const { s, p, m } = nuevoStore();
-  const premio = s.agregarPremio({ nombre: 'Consola', precio: 10 });
+  const premio = s.agregarPremio({ nombre: 'Consola', precio: 13 });
   assert.throws(() => s.canjear(p.id, premio.id), AQ.ErrorValidacion);
   const t = s.agregarTarea(p.id, { materiaId: m.id, titulo: 'X', vence: '2026-09-29' });
   s.marcarHecha(t.id); s.aprobar(t.id);
@@ -179,7 +194,7 @@ prueba('canje descuenta y cancelar reintegra', () => {
   assert.strictEqual(s.saldo(p.id), 10);
   const xpAntes = s.xp(p.id);
   s.cancelarCanje(c.id);
-  assert.strictEqual(s.saldo(p.id), 20);
+  assert.strictEqual(s.saldo(p.id), 23);
   assert.strictEqual(s.xp(p.id), xpAntes);
 });
 

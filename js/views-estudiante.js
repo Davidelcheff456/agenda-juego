@@ -119,11 +119,17 @@
     } else if (!pend.length && !enviadas.length) {
       cuerpo = ui.vacio('No tenés nada pendiente. Si te dieron tarea, anotala con el botón +.');
     }
-    cuerpo += seccionTareas('Vencido', 'mal', vencidas, app) +
+    // "Para validar" va primero: es lo que el estudiante le muestra al padre.
+    cuerpo += (enviadas.length
+        ? '<section class="seccion validar-bloque"><div class="fila-entre"><h2 class="titulo-seccion ok">Para validar</h2></div>' +
+          '<div class="aviso-validar">' + ui.icono('candado', 20) + '<span>Mostrale a tu papá lo que hiciste. Con su PIN, cada tarea validada suma <strong>+' + reglas.MONEDAS.A_TIEMPO + '</strong> (a tiempo).</span></div>' +
+          '<button type="button" class="boton primario ancho" data-accion="validar">Validar con papá (' + enviadas.length + ')</button>' +
+          enviadas.map((t) => ui.filaTarea(t, app.store.materia(t.materiaId))).join('') + '</section>'
+        : '') +
+      seccionTareas('Vencido', 'mal', vencidas, app) +
       seccionTareas('Para hoy', 'alerta', paraHoy, app) +
       seccionTareas('Para mañana', 'alerta', paraManana, app) +
-      seccionTareas('Próximos días', '', proximos, app) +
-      seccionTareas('Esperando aprobación', 'ok', enviadas, app);
+      seccionTareas('Próximos días', '', proximos, app);
 
     const tarjetasExamen = examenes.map((x) => {
       const mat = s.materia(x.materiaId);
@@ -204,7 +210,7 @@
     const t = s.tarea(app.params.id);
     if (!t) return V.hoy(app);
     const m = s.materia(t.materiaId);
-    const estados = { pendiente: 'Pendiente', enviada: 'Esperando aprobación', aprobada: 'Aprobada' };
+    const estados = { pendiente: 'Pendiente', enviada: 'Hecha, falta que papá la valide', aprobada: 'Validada' };
     const puedeEditar = t.estado !== 'aprobada';
     const puedeBorrar = t.estado !== 'aprobada' && (t.creadaPor === 'estudiante' || app.modoPadre);
     return '<main class="pantalla">' +
@@ -222,9 +228,10 @@
       '</article>' +
       '<div class="acciones">' +
       (t.estado === 'pendiente' && !app.modoPadre ? '<button type="button" class="boton primario ancho" data-accion="marcar" data-id="' + t.id + '">' + ui.icono('check', 20, 3) + 'Ya la hice</button>' : '') +
-      (t.estado === 'enviada' && !app.modoPadre ? '<button type="button" class="boton secundario ancho" data-accion="desmarcar" data-id="' + t.id + '">Todavía no la terminé</button>' : '') +
+      (t.estado === 'enviada' && !app.modoPadre ? '<button type="button" class="boton primario ancho" data-accion="validar">' + ui.icono('candado', 18) + 'Validar con papá</button>' +
+        '<button type="button" class="boton secundario ancho" data-accion="desmarcar" data-id="' + t.id + '">Todavía no la terminé</button>' : '') +
       (puedeEditar ? '<button type="button" class="boton secundario ancho" data-accion="ir" data-pantalla="tarea-form" data-id="' + t.id + '">' + ui.icono('lapiz', 18) + (t.tipo === 'sesion' ? 'Cambiar el día' : 'Editar') + '</button>' : '') +
-      (puedeBorrar ? '<button type="button" class="boton peligro ancho" data-accion="borrar-tarea" data-id="' + t.id + '">' + ui.icono('basura', 18) + 'Borrar' + (t.creadaPor === 'estudiante' ? ' (descuenta las ' + reglas.MONEDAS.ANOTAR + ' monedas)' : '') + '</button>' : '') +
+      (puedeBorrar ? '<button type="button" class="boton peligro ancho" data-accion="borrar-tarea" data-id="' + t.id + '">' + ui.icono('basura', 18) + 'Borrar' + (s.monedasDeTarea(t.id) ? ' (descuenta ' + s.monedasDeTarea(t.id) + ' monedas)' : '') + '</button>' : '') +
       '</div></main>';
   };
 
@@ -411,9 +418,10 @@
         : ui.vacio('Todavía no hay movimientos.')) + '</section>' +
       '<section class="tarjeta"><h2 class="titulo-chico">Cómo se ganan monedas</h2><ul class="lista-reglas">' +
       '<li>Anotar una tarea: +' + reglas.MONEDAS.ANOTAR + '</li>' +
-      '<li>Tarea aprobada, hecha a tiempo: +' + reglas.MONEDAS.A_TIEMPO + '</li>' +
-      '<li>Tarea aprobada, hecha tarde: +' + reglas.MONEDAS.TARDE + '</li>' +
-      '<li>Sesión de estudio aprobada: +' + reglas.MONEDAS.SESION + '</li>' +
+      '<li>Marcarla como hecha: +' + reglas.MONEDAS.HECHA + '</li>' +
+      '<li>Cuando papá la valida, si la hiciste a tiempo: +' + reglas.MONEDAS.A_TIEMPO + '</li>' +
+      '<li>Cuando papá la valida, si la hiciste tarde: +' + reglas.MONEDAS.TARDE + '</li>' +
+      '<li>Sesión de estudio validada: +' + reglas.MONEDAS.SESION + '</li>' +
       '<li>Pomodoro completo: +1 cada 5 minutos (hasta ' + reglas.MONEDAS.TOPE_POMODORO_DIA + ' por día)</li>' +
       '<li>5 días seguidos de revisión con papá: +' + reglas.MONEDAS.RACHA_REVISION + '</li>' +
       '<li>Semana sin tareas vencidas: +' + reglas.MONEDAS.SEMANA_LIMPIA + '</li>' +

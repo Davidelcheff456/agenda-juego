@@ -4,8 +4,8 @@ build.py — Arma versiones de un solo archivo a partir del proyecto.
   python3 build.py
 
 Genera:
-  dist/agendaquest.html          un solo archivo, se abre con doble clic o se sube a cualquier hosting
-  dist/agendaquest-artifact.html versión para publicar como página en Claude (sin <html>/<head>/<body>)
+  dist/al-dia.html          un solo archivo, se abre con doble clic o se sube a cualquier hosting
+  dist/al-dia-artifact.html versión para publicar como página en Claude (sin <html>/<head>/<body>)
 """
 import pathlib, re
 
@@ -29,11 +29,11 @@ def inline_script(m):
     return '<script>\n/* ' + m.group(1) + ' */\n' + codigo + '\n</script>'
 
 html = re.sub(r'<script src="(js/[^"]+)"></script>', inline_script, html)
-(DIST / 'agendaquest.html').write_text(html, encoding='utf-8')
+(DIST / 'al-dia.html').write_text(html, encoding='utf-8')
 
 # Versión artifact: solo el contenido de <head> (title, fuentes, estilos) y <body>.
 cabeza = re.search(r'<head>(.*)</head>', html, re.S).group(1)
 cabeza = re.sub(r'<meta[^>]*>\s*', '', cabeza)
 cuerpo = re.search(r'<body>(.*)</body>', html, re.S).group(1)
-(DIST / 'agendaquest-artifact.html').write_text(cabeza.strip() + '\n' + cuerpo.strip() + '\n', encoding='utf-8')
+(DIST / 'al-dia-artifact.html').write_text(cabeza.strip() + '\n' + cuerpo.strip() + '\n', encoding='utf-8')
 print('listo:', [p.name for p in DIST.iterdir()])

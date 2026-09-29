@@ -84,7 +84,7 @@
       '<button type="button" class="fila-cuerpo" data-accion="ir" data-pantalla="tarea" data-id="' + t.id + '">' +
       '<span class="meta">' + meta + '</span>' +
       '<span class="fila-titulo">' + esc(t.titulo) + '</span>' +
-      (enviada ? '<span class="aviso-ok">Esperando aprobación</span>' : '') +
+      (enviada ? '<span class="aviso-ok">Falta que papá la valide</span>' : '') +
       (t.nota && t.estado === 'pendiente' ? '<span class="aviso-nota">Papá: ' + esc(t.nota) + '</span>' : '') +
       '</button>' + casillero + '</div>';
   }

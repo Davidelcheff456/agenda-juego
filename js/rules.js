@@ -9,6 +9,7 @@
 
   const MONEDAS = Object.freeze({
     ANOTAR: 5,            // el estudiante anota una tarea
+    HECHA: 3,             // la marca como hecha (una sola vez por tarea); el premio grande llega al validarla
     A_TIEMPO: 15,         // aprobada, marcada como hecha antes o el día del vencimiento
     TARDE: 5,             // aprobada, pero terminada después del vencimiento
     SESION: 10,           // sesión de estudio de examen aprobada
@@ -126,7 +127,7 @@
 
   function mensajeMascota(estado, resumen, nombreMascota) {
     switch (estado) {
-      case 'feliz': return '¡Bien ahí! Cuando tu papá la apruebe, sumás monedas.';
+      case 'feliz': return '¡Bien ahí! Cuando papá la valide, sumás más monedas.';
       case 'debil':
         if (resumen.vida === 0) return 'Me quedé sin fuerzas. Cada comida me devuelve 1 de vida.';
         return resumen.saldo >= VIDA.COSTO_COMIDA

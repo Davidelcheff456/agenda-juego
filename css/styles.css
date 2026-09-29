@@ -439,6 +439,16 @@ body.con-barra-pomo .zona-avisos { top: calc(66px + env(safe-area-inset-top, 0px
 .dos-datos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 8px; }
 .dos-datos > div { display: flex; flex-direction: column; }
 
+/* ---------- Validación en el celular del estudiante ---------- */
+.aviso-validar { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: var(--radio); background: var(--lima-fondo); color: #E3FFB0; font-size: 14px; }
+.aviso-validar .icono { flex-shrink: 0; }
+.foto-validar { display: block; width: 100%; max-height: 50vh; object-fit: contain; border-radius: 12px; background: var(--fondo); }
+.validado { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 28px 16px; }
+.validado h2, .validado p { margin: 0; }
+.pantalla > .item-aprobar { background: var(--panel); margin-bottom: 0; }
+.campo-pin { font-size: 28px !important; letter-spacing: .5em; text-align: center; }
+.dialogo .texto-error { font-size: 14px; }
+
 /* ---------- Configuración ---------- */
 .seccion-ajustes { display: flex; flex-direction: column; gap: 12px; }
 .seccion-ajustes .titulo-chico { margin: 0; }

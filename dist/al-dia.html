@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#12141C">
-  <title>AgendaQuest</title>
+  <title>Al Día</title>
   <style>
 /* Estilos de la app. Oscuro, estilo gamer sobrio, pensado primero para celular. */
 
@@ -447,6 +447,16 @@ body.con-barra-pomo .zona-avisos { top: calc(66px + env(safe-area-inset-top, 0px
 .dos-datos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 8px; }
 .dos-datos > div { display: flex; flex-direction: column; }
 
+/* ---------- Validación en el celular del estudiante ---------- */
+.aviso-validar { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: var(--radio); background: var(--lima-fondo); color: #E3FFB0; font-size: 14px; }
+.aviso-validar .icono { flex-shrink: 0; }
+.foto-validar { display: block; width: 100%; max-height: 50vh; object-fit: contain; border-radius: 12px; background: var(--fondo); }
+.validado { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 28px 16px; }
+.validado h2, .validado p { margin: 0; }
+.pantalla > .item-aprobar { background: var(--panel); margin-bottom: 0; }
+.campo-pin { font-size: 28px !important; letter-spacing: .5em; text-align: center; }
+.dialogo .texto-error { font-size: 14px; }
+
 /* ---------- Configuración ---------- */
 .seccion-ajustes { display: flex; flex-direction: column; gap: 12px; }
 .seccion-ajustes .titulo-chico { margin: 0; }
@@ -626,7 +636,7 @@ body.sin-animaciones .chispas { display: none; }
    */
   function hashPin(pin) {
     let h = 0x811c9dc5;
-    const texto = 'agendaquest:' + pin;
+    const texto = 'agendaquest:' + pin; // no cambiar: invalidaría los PIN ya creados
     for (let i = 0; i < texto.length; i++) {
       h ^= texto.charCodeAt(i);
       h = Math.imul(h, 0x01000193) >>> 0;
@@ -637,7 +647,7 @@ body.sin-animaciones .chispas { display: none; }
   function limitar(n, min, max) { return Math.max(min, Math.min(max, n)); }
 
   /** Nombre de la app: se cambia acá y en el <title> de index.html. */
-  AQ.NOMBRE_APP = 'AgendaQuest';
+  AQ.NOMBRE_APP = 'Al Día';
 
   AQ.Fecha = Fecha;
   AQ.util = { nuevoId, esc, hashPin, limitar };
@@ -767,6 +777,7 @@ body.sin-animaciones .chispas { display: none; }
 
   const MONEDAS = Object.freeze({
     ANOTAR: 5,            // el estudiante anota una tarea
+    HECHA: 3,             // la marca como hecha (una sola vez por tarea); el premio grande llega al validarla
     A_TIEMPO: 15,         // aprobada, marcada como hecha antes o el día del vencimiento
     TARDE: 5,             // aprobada, pero terminada después del vencimiento
     SESION: 10,           // sesión de estudio de examen aprobada
@@ -884,7 +895,7 @@ body.sin-animaciones .chispas { display: none; }
 
   function mensajeMascota(estado, resumen, nombreMascota) {
     switch (estado) {
-      case 'feliz': return '¡Bien ahí! Cuando tu papá la apruebe, sumás monedas.';
+      case 'feliz': return '¡Bien ahí! Cuando papá la valide, sumás más monedas.';
       case 'debil':
         if (resumen.vida === 0) return 'Me quedé sin fuerzas. Cada comida me devuelve 1 de vida.';
         return resumen.saldo >= VIDA.COSTO_COMIDA
@@ -1126,6 +1137,11 @@ body.sin-animaciones .chispas { display: none; }
       });
     }
 
+    /**
+     * El estudiante marca la tarea como hecha: queda esperando la validación del padre.
+     * Da unas pocas monedas, una sola vez por tarea (desmarcar y volver a marcar no suma de nuevo).
+     * Devuelve las monedas acreditadas.
+     */
     marcarHecha(id) {
       const t = this.tarea(id);
       exigir(t && t.estado === 'pendiente', 'Esta tarea no está pendiente.');
@@ -1133,6 +1149,10 @@ body.sin-animaciones .chispas { display: none; }
         t.estado = 'enviada';
         t.enviadaEl = Fecha.hoy();
         t.nota = '';
+        if (t.premioHecha) return 0;
+        t.premioHecha = true;
+        this._movimiento(t.perfilId, M.HECHA, 'Hecha, falta validar: ' + t.titulo, t.id, 'hecha');
+        return M.HECHA;
       });
     }
 
@@ -1181,10 +1201,17 @@ body.sin-animaciones .chispas { display: none; }
       exigir(t, 'Tarea no encontrada.');
       exigir(t.estado !== 'aprobada', 'Una tarea aprobada no se puede borrar.');
       return this._confirmar('tareas', () => {
-        const premio = this.estado.movimientos.find((m) => m.ref === t.id && m.tipo === 'anotar');
-        if (premio) this._movimiento(t.perfilId, -premio.cantidad, 'Tarea borrada: ' + t.titulo, t.id, 'ajuste');
+        const premios = this.estado.movimientos.filter((m) => m.ref === t.id && (m.tipo === 'anotar' || m.tipo === 'hecha'));
+        const total = premios.reduce((s, m) => s + m.cantidad, 0);
+        if (total) this._movimiento(t.perfilId, -total, 'Tarea borrada: ' + t.titulo, t.id, 'ajuste');
         this.estado.tareas = this.estado.tareas.filter((x) => x.id !== id);
       });
+    }
+
+    /** Monedas que dio una tarea todavía no validada (anotarla + marcarla hecha): se descuentan si se borra. */
+    monedasDeTarea(id) {
+      return this.estado.movimientos.filter((m) => m.ref === id && (m.tipo === 'anotar' || m.tipo === 'hecha'))
+        .reduce((s, m) => s + m.cantidad, 0);
     }
 
     borrarFotosAprobadas() {
@@ -1965,7 +1992,7 @@ body.sin-animaciones .chispas { display: none; }
       '<button type="button" class="fila-cuerpo" data-accion="ir" data-pantalla="tarea" data-id="' + t.id + '">' +
       '<span class="meta">' + meta + '</span>' +
       '<span class="fila-titulo">' + esc(t.titulo) + '</span>' +
-      (enviada ? '<span class="aviso-ok">Esperando aprobación</span>' : '') +
+      (enviada ? '<span class="aviso-ok">Falta que papá la valide</span>' : '') +
       (t.nota && t.estado === 'pendiente' ? '<span class="aviso-nota">Papá: ' + esc(t.nota) + '</span>' : '') +
       '</button>' + casillero + '</div>';
   }
@@ -2122,11 +2149,17 @@ body.sin-animaciones .chispas { display: none; }
     } else if (!pend.length && !enviadas.length) {
       cuerpo = ui.vacio('No tenés nada pendiente. Si te dieron tarea, anotala con el botón +.');
     }
-    cuerpo += seccionTareas('Vencido', 'mal', vencidas, app) +
+    // "Para validar" va primero: es lo que el estudiante le muestra al padre.
+    cuerpo += (enviadas.length
+        ? '<section class="seccion validar-bloque"><div class="fila-entre"><h2 class="titulo-seccion ok">Para validar</h2></div>' +
+          '<div class="aviso-validar">' + ui.icono('candado', 20) + '<span>Mostrale a tu papá lo que hiciste. Con su PIN, cada tarea validada suma <strong>+' + reglas.MONEDAS.A_TIEMPO + '</strong> (a tiempo).</span></div>' +
+          '<button type="button" class="boton primario ancho" data-accion="validar">Validar con papá (' + enviadas.length + ')</button>' +
+          enviadas.map((t) => ui.filaTarea(t, app.store.materia(t.materiaId))).join('') + '</section>'
+        : '') +
+      seccionTareas('Vencido', 'mal', vencidas, app) +
       seccionTareas('Para hoy', 'alerta', paraHoy, app) +
       seccionTareas('Para mañana', 'alerta', paraManana, app) +
-      seccionTareas('Próximos días', '', proximos, app) +
-      seccionTareas('Esperando aprobación', 'ok', enviadas, app);
+      seccionTareas('Próximos días', '', proximos, app);
 
     const tarjetasExamen = examenes.map((x) => {
       const mat = s.materia(x.materiaId);
@@ -2207,7 +2240,7 @@ body.sin-animaciones .chispas { display: none; }
     const t = s.tarea(app.params.id);
     if (!t) return V.hoy(app);
     const m = s.materia(t.materiaId);
-    const estados = { pendiente: 'Pendiente', enviada: 'Esperando aprobación', aprobada: 'Aprobada' };
+    const estados = { pendiente: 'Pendiente', enviada: 'Hecha, falta que papá la valide', aprobada: 'Validada' };
     const puedeEditar = t.estado !== 'aprobada';
     const puedeBorrar = t.estado !== 'aprobada' && (t.creadaPor === 'estudiante' || app.modoPadre);
     return '<main class="pantalla">' +
@@ -2225,9 +2258,10 @@ body.sin-animaciones .chispas { display: none; }
       '</article>' +
       '<div class="acciones">' +
       (t.estado === 'pendiente' && !app.modoPadre ? '<button type="button" class="boton primario ancho" data-accion="marcar" data-id="' + t.id + '">' + ui.icono('check', 20, 3) + 'Ya la hice</button>' : '') +
-      (t.estado === 'enviada' && !app.modoPadre ? '<button type="button" class="boton secundario ancho" data-accion="desmarcar" data-id="' + t.id + '">Todavía no la terminé</button>' : '') +
+      (t.estado === 'enviada' && !app.modoPadre ? '<button type="button" class="boton primario ancho" data-accion="validar">' + ui.icono('candado', 18) + 'Validar con papá</button>' +
+        '<button type="button" class="boton secundario ancho" data-accion="desmarcar" data-id="' + t.id + '">Todavía no la terminé</button>' : '') +
       (puedeEditar ? '<button type="button" class="boton secundario ancho" data-accion="ir" data-pantalla="tarea-form" data-id="' + t.id + '">' + ui.icono('lapiz', 18) + (t.tipo === 'sesion' ? 'Cambiar el día' : 'Editar') + '</button>' : '') +
-      (puedeBorrar ? '<button type="button" class="boton peligro ancho" data-accion="borrar-tarea" data-id="' + t.id + '">' + ui.icono('basura', 18) + 'Borrar' + (t.creadaPor === 'estudiante' ? ' (descuenta las ' + reglas.MONEDAS.ANOTAR + ' monedas)' : '') + '</button>' : '') +
+      (puedeBorrar ? '<button type="button" class="boton peligro ancho" data-accion="borrar-tarea" data-id="' + t.id + '">' + ui.icono('basura', 18) + 'Borrar' + (s.monedasDeTarea(t.id) ? ' (descuenta ' + s.monedasDeTarea(t.id) + ' monedas)' : '') + '</button>' : '') +
       '</div></main>';
   };
 
@@ -2414,9 +2448,10 @@ body.sin-animaciones .chispas { display: none; }
         : ui.vacio('Todavía no hay movimientos.')) + '</section>' +
       '<section class="tarjeta"><h2 class="titulo-chico">Cómo se ganan monedas</h2><ul class="lista-reglas">' +
       '<li>Anotar una tarea: +' + reglas.MONEDAS.ANOTAR + '</li>' +
-      '<li>Tarea aprobada, hecha a tiempo: +' + reglas.MONEDAS.A_TIEMPO + '</li>' +
-      '<li>Tarea aprobada, hecha tarde: +' + reglas.MONEDAS.TARDE + '</li>' +
-      '<li>Sesión de estudio aprobada: +' + reglas.MONEDAS.SESION + '</li>' +
+      '<li>Marcarla como hecha: +' + reglas.MONEDAS.HECHA + '</li>' +
+      '<li>Cuando papá la valida, si la hiciste a tiempo: +' + reglas.MONEDAS.A_TIEMPO + '</li>' +
+      '<li>Cuando papá la valida, si la hiciste tarde: +' + reglas.MONEDAS.TARDE + '</li>' +
+      '<li>Sesión de estudio validada: +' + reglas.MONEDAS.SESION + '</li>' +
       '<li>Pomodoro completo: +1 cada 5 minutos (hasta ' + reglas.MONEDAS.TOPE_POMODORO_DIA + ' por día)</li>' +
       '<li>5 días seguidos de revisión con papá: +' + reglas.MONEDAS.RACHA_REVISION + '</li>' +
       '<li>Semana sin tareas vencidas: +' + reglas.MONEDAS.SEMANA_LIMPIA + '</li>' +
@@ -2508,6 +2543,62 @@ body.sin-animaciones .chispas { display: none; }
   const esc = util.esc;
   const V = AQ.vistas = AQ.vistas || {};
 
+  /** Monedas que da validar esta tarea ahora, y cómo se hizo. */
+  function premioValidar(t) {
+    if (t.tipo === 'sesion') return { monto: reglas.MONEDAS.SESION, cuando: 'sesión de estudio' };
+    if (Fecha.diferencia(t.enviadaEl, t.vence) < 0) return { monto: reglas.MONEDAS.TARDE, cuando: 'hecha tarde' };
+    return { monto: reglas.MONEDAS.A_TIEMPO, cuando: 'a tiempo' };
+  }
+  V.premioValidar = premioValidar;
+
+  /**
+   * Una tarea esperando validación, con los botones del padre.
+   * enCelular: true en la pantalla de validación rápida (muestra detalle y foto grande, sin link a la tarea).
+   */
+  V.itemAprobar = function (app, t, p, enCelular) {
+    const s = app.store;
+    const m = s.materia(t.materiaId);
+    const { monto, cuando } = premioValidar(t);
+    const devolviendo = app.devolviendo === t.id;
+    const meta = ui.puntoMateria(m) + esc(m ? m.nombre : '') + ' · vence ' + esc(Fecha.relativa(t.vence)) + ' · ' + cuando + (t.foto && !enCelular ? ' · con foto' : '');
+    const cuerpo = enCelular
+      ? '<div class="fila-cuerpo"><span class="meta">' + meta + '</span><span class="fila-titulo">' + esc(t.titulo) + '</span>' +
+        (t.detalle ? '<span class="texto-chico">' + esc(t.detalle) + '</span>' : '') + '</div>' +
+        (t.foto ? '<img class="foto-validar" src="' + t.foto + '" alt="Foto adjunta a la tarea">' : '')
+      : '<button type="button" class="fila-cuerpo" data-accion="ir" data-pantalla="tarea" data-id="' + t.id + '">' +
+        '<span class="meta">' + meta + '</span><span class="fila-titulo">' + esc(t.titulo) + '</span></button>';
+    return '<div class="item-aprobar">' + cuerpo +
+      (devolviendo
+        ? '<form class="form-devolver" data-form="devolver" data-id="' + t.id + '"><label for="nota-' + t.id + '">Nota para ' + esc(p.nombre) + '</label>' +
+          '<input id="nota-' + t.id + '" name="nota" type="text" maxlength="200" placeholder="Ej.: falta el ejercicio 4" autofocus>' +
+          '<div class="fila-botones"><button type="button" class="boton secundario chico" data-accion="cancelar-devolver">Cancelar</button><button class="boton primario chico" type="submit">Devolver</button></div></form>'
+        : '<div class="fila-botones"><button type="button" class="boton secundario chico" data-accion="devolver" data-id="' + t.id + '">Devolver con nota</button>' +
+          '<button type="button" class="boton primario chico" data-accion="aprobar" data-id="' + t.id + '">Validar · +' + monto + '</button></div>') +
+      '</div>';
+  };
+
+  /** Validación rápida en el celular del estudiante: el padre ya puso su PIN. */
+  V.validar = function (app) {
+    const s = app.store;
+    const p = app.perfil();
+    const enviadas = s.tareasDe(p.id).filter((t) => t.estado === 'enviada').sort((a, b) => a.vence.localeCompare(b.vence));
+    const total = enviadas.reduce((acc, t) => acc + premioValidar(t).monto, 0);
+    const m = s.mascota(p.id);
+    return '<main class="pantalla">' +
+      '<header class="barra"><h1 class="titulo-pixel">Validación de papá</h1>' +
+      '<div class="barra-extra"><span class="chip-mini">' + ui.icono('candado', 14) + ' PIN correcto</span></div></header>' +
+      (enviadas.length
+        ? '<p class="texto-suave">' + esc(p.nombre) + ' te muestra lo que hizo. Revisalo en la carpeta o el cuaderno y validalo.</p>' +
+          enviadas.map((t) => V.itemAprobar(app, t, p, true)).join('') +
+          (enviadas.length > 1 ? '<button type="button" class="boton secundario ancho" data-accion="aprobar-todas">Validar todas · +' + total + '</button>' : '')
+        : '<section class="tarjeta centro validado">' +
+          AQ.dibujarMascota({ etapa: m.etapa, estado: 'feliz', color: m.color, tamanio: 120 }) +
+          '<h2 class="titulo-pixel">¡Todo revisado!</h2>' +
+          '<p class="texto-suave">No queda nada esperando validación.</p></section>') +
+      '<button type="button" class="boton primario ancho grande" data-accion="terminar-validar">Listo, devolver el celular</button>' +
+      '</main>';
+  };
+
   V.pin = function (app) {
     return '<main class="pantalla centrada">' +
       ui.encabezado('Panel del padre', 'perfiles') +
@@ -2556,25 +2647,7 @@ body.sin-animaciones .chispas { display: none; }
 
     // Para aprobar
     const enviadas = s.tareasDe(p.id).filter((t) => t.estado === 'enviada').sort((a, b) => a.vence.localeCompare(b.vence));
-    const aprobar = enviadas.map((t) => {
-      const m = s.materia(t.materiaId);
-      let monto = reglas.MONEDAS.A_TIEMPO;
-      let cuando = 'a tiempo';
-      if (t.tipo === 'sesion') { monto = reglas.MONEDAS.SESION; cuando = 'sesión de estudio'; }
-      else if (Fecha.diferencia(t.enviadaEl, t.vence) < 0) { monto = reglas.MONEDAS.TARDE; cuando = 'hecha tarde'; }
-      const devolviendo = app.devolviendo === t.id;
-      return '<div class="item-aprobar">' +
-        '<button type="button" class="fila-cuerpo" data-accion="ir" data-pantalla="tarea" data-id="' + t.id + '">' +
-        '<span class="meta">' + ui.puntoMateria(m) + esc(m ? m.nombre : '') + ' · vence ' + esc(Fecha.relativa(t.vence)) + ' · ' + cuando + (t.foto ? ' · con foto' : '') + '</span>' +
-        '<span class="fila-titulo">' + esc(t.titulo) + '</span></button>' +
-        (devolviendo
-          ? '<form class="form-devolver" data-form="devolver" data-id="' + t.id + '"><label for="nota-' + t.id + '">Nota para ' + esc(p.nombre) + '</label>' +
-            '<input id="nota-' + t.id + '" name="nota" type="text" maxlength="200" placeholder="Ej.: falta el ejercicio 4" autofocus>' +
-            '<div class="fila-botones"><button type="button" class="boton secundario chico" data-accion="cancelar-devolver">Cancelar</button><button class="boton primario chico" type="submit">Devolver</button></div></form>'
-          : '<div class="fila-botones"><button type="button" class="boton secundario chico" data-accion="devolver" data-id="' + t.id + '">Devolver con nota</button>' +
-            '<button type="button" class="boton primario chico" data-accion="aprobar" data-id="' + t.id + '">Aprobar · +' + monto + '</button></div>') +
-        '</div>';
-    }).join('');
+    const aprobar = enviadas.map((t) => V.itemAprobar(app, t, p, false)).join('');
 
     // Canjes
     const canjes = s.canjesDe(p.id).filter((c) => !c.entregado);
@@ -2860,9 +2933,9 @@ body.sin-animaciones .chispas { display: none; }
   const { Fecha } = AQ;
 
   const PANTALLAS_PADRE = ['padre', 'padre-ajustes', 'perfil-form', 'premio-form'];
-  const PANTALLAS_ESTUDIANTE = ['hoy', 'tarea-form', 'tarea', 'examenes', 'examen-form', 'examen', 'materias', 'materia-form', 'mascota', 'pomodoro', 'ajustes'];
+  const PANTALLAS_ESTUDIANTE = ['hoy', 'tarea-form', 'tarea', 'examenes', 'examen-form', 'examen', 'materias', 'materia-form', 'mascota', 'pomodoro', 'ajustes', 'validar'];
   const TITULOS = {
-    hoy: 'Hoy', perfiles: 'Perfiles', padre: 'Panel del padre', mascota: 'Mascota', examenes: 'Exámenes', materias: 'Materias', pomodoro: 'Pomodoro', ajustes: 'Configuración'
+    hoy: 'Hoy', perfiles: 'Perfiles', padre: 'Panel del padre', mascota: 'Mascota', examenes: 'Exámenes', materias: 'Materias', pomodoro: 'Pomodoro', ajustes: 'Configuración', validar: 'Validación'
   };
 
   function almacenSeguro() {
@@ -3051,6 +3124,8 @@ body.sin-animaciones .chispas { display: none; }
     ir(pantalla, params, opciones) {
       const op = opciones || {};
       params = params || {};
+      if (pantalla !== 'validar') this.validando = false;
+      else if (!this.validando) return this.ir('hoy', {}, op);
       if (PANTALLAS_PADRE.includes(pantalla) && !this.padreDesbloqueado) {
         return this.ir('pin', { destino: pantalla }, op);
       }
@@ -3107,6 +3182,8 @@ body.sin-animaciones .chispas { display: none; }
         '<h2 id="dialogo-titulo" class="titulo-chico">' + esc(op.titulo) + '</h2>' +
         (op.mensaje ? '<p class="texto-suave">' + esc(op.mensaje) + '</p>' : '') +
         (op.escribir ? '<label for="dialogo-campo" class="texto-chico">Escribí <b>' + esc(op.escribir) + '</b> para confirmar</label><input id="dialogo-campo" type="text" autocomplete="off">' : '') +
+        (op.clave ? '<label for="dialogo-campo" class="texto-chico">' + esc(op.clave) + '</label><input id="dialogo-campo" class="campo-pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off">' : '') +
+        (op.error ? '<p class="texto-error" role="alert">' + esc(op.error) + '</p>' : '') +
         (op.area ? '<textarea id="dialogo-campo" rows="8"' + (op.soloLectura ? ' readonly' : '') + ' aria-label="' + esc(op.titulo) + '">' + esc(op.valor || '') + '</textarea>' : '') +
         '<div class="fila-botones">' +
         (op.cancelar === null ? '' : '<button type="button" class="boton secundario" data-dialogo="no">' + esc(op.cancelar || 'Cancelar') + '</button>') +
@@ -3143,6 +3220,7 @@ body.sin-animaciones .chispas { display: none; }
             if (campo.value.trim().toUpperCase() !== op.escribir) { campo.focus(); campo.setAttribute('aria-invalid', 'true'); return; }
             return cerrar(true);
           }
+          if (op.clave) return cerrar(campo.value);
           cerrar(op.area && !op.soloLectura ? campo.value : true);
         });
       });
@@ -3195,6 +3273,31 @@ body.sin-animaciones .chispas { display: none; }
       });
     }
 
+    /**
+     * Verifica el PIN del padre. Después de 5 intentos fallidos bloquea 1 minuto,
+     * para que no se pueda adivinar probando números.
+     */
+    /** Las acciones de validar solo valen con el panel del padre abierto o con el PIN recién puesto. */
+    _exigirPadre() {
+      if (!this.modoPadre && !this.validando) throw new AQ.ErrorValidacion('Para validar hace falta el PIN de papá.');
+    }
+
+    _chequearPin(pin) {
+      const ahora = Date.now();
+      if (this.pinBloqueadoHasta && ahora < this.pinBloqueadoHasta) {
+        const seg = Math.ceil((this.pinBloqueadoHasta - ahora) / 1000);
+        throw new AQ.ErrorValidacion('Demasiados intentos. Esperá ' + seg + ' segundos.');
+      }
+      if (this.store.verificarPin(pin)) { this.intentosPin = 0; return true; }
+      this.intentosPin = (this.intentosPin || 0) + 1;
+      if (this.intentosPin >= 5) {
+        this.intentosPin = 0;
+        this.pinBloqueadoHasta = ahora + 60000;
+        throw new AQ.ErrorValidacion('PIN incorrecto 5 veces. Esperá 1 minuto.');
+      }
+      return false;
+    }
+
     _importarTexto(texto) {
       this.store.importar(texto);
       this.padreDesbloqueado = false;
@@ -3239,13 +3342,56 @@ body.sin-animaciones .chispas { display: none; }
     },
 
     marcar(el) {
-      this.store.marcarHecha(el.dataset.id);
+      const monedas = this.store.marcarHecha(el.dataset.id);
       this.felizHasta = Date.now() + 3500;
-      this.mensajeFeliz = '¡Bien ahí! Cuando tu papá la apruebe, sumás monedas.';
+      this.mensajeFeliz = '¡Bien ahí! Mostrásela a tu papá: cuando la valide, sumás más monedas.';
       if (this.pantalla === 'tarea') this.atras('hoy');
       else this.render();
       setTimeout(() => { if (!this.felizActivo()) this.render(); }, 3600);
-      this.aviso('¡Bien! Ahora tu papá la revisa.', 'ok');
+      this.aviso(monedas ? '¡Hecha! +' + monedas + ' monedas. Validala con papá para ganar más.' : 'Hecha. Validala con papá para ganar las monedas.', 'ok');
+    },
+
+    /** El padre valida en el celular del estudiante: pide el PIN en un diálogo y abre la pantalla de validación. */
+    async validar() {
+      let error = '';
+      for (;;) {
+        const pin = await this.dialogo({
+          titulo: 'Validación de papá',
+          mensaje: 'Pasale el celular a tu papá para que ponga su PIN.',
+          clave: 'PIN del padre (4 números)',
+          confirmar: 'Validar',
+          error
+        });
+        if (pin === false) return;
+        try {
+          if (this._chequearPin(pin)) break;
+          error = 'PIN incorrecto. Probá de nuevo.';
+        } catch (e) {
+          if (e instanceof AQ.ErrorValidacion) { error = e.message; continue; }
+          throw e;
+        }
+      }
+      this.validando = true;
+      this.devolviendo = null;
+      this.ir('validar');
+    },
+
+    'aprobar-todas'() {
+      this._exigirPadre();
+      const lista = this.store.tareasDe(this.perfilId).filter((t) => t.estado === 'enviada');
+      let total = 0;
+      lista.forEach((t) => { total += this.store.aprobar(t.id); });
+      this.aviso('Validadas ' + lista.length + ' tareas: +' + total + ' monedas.', 'ok');
+    },
+
+    'terminar-validar'() {
+      this.validando = false;
+      this.devolviendo = null;
+      this.felizHasta = Date.now() + 3500;
+      this.mensajeFeliz = '¡Qué bien! Papá validó tus tareas.';
+      this.historial = [];
+      this.ir('hoy', {}, { sinHistorial: true });
+      setTimeout(() => { if (!this.felizActivo()) this.render(); }, 3600);
     },
 
     desmarcar(el) {
@@ -3256,7 +3402,8 @@ body.sin-animaciones .chispas { display: none; }
     async 'borrar-tarea'(el) {
       const t = this.store.tarea(el.dataset.id);
       if (!t) return;
-      const descuento = t.creadaPor === 'estudiante' ? 'Se descuentan las ' + AQ.reglas.MONEDAS.ANOTAR + ' monedas que dio anotarla.' : '';
+      const dio = this.store.monedasDeTarea(t.id);
+      const descuento = dio ? 'Se descuentan las ' + dio + ' monedas que ya te dio.' : '';
       if (!await this.dialogo({ titulo: '¿Borrar "' + t.titulo + '"?', mensaje: descuento, confirmar: 'Borrar', peligro: true })) return;
       this.store.eliminarTarea(t.id);
       if (this.pantalla === 'tarea') this.atras(this.modoPadre ? 'padre' : 'hoy');
@@ -3330,13 +3477,15 @@ body.sin-animaciones .chispas { display: none; }
     },
 
     aprobar(el) {
+      this._exigirPadre();
       const t = this.store.tarea(el.dataset.id);
       const monto = this.store.aprobar(el.dataset.id);
       const p = this.store.perfil(t.perfilId);
-      this.aviso('Aprobada: +' + monto + ' monedas para ' + p.nombre + '.', 'ok');
+      this.aviso('Validada: +' + monto + ' monedas para ' + p.nombre + '.', 'ok');
     },
 
     devolver(el) {
+      this._exigirPadre();
       this.devolviendo = el.dataset.id;
       this.render();
       const input = this.raiz.querySelector('.form-devolver input');
@@ -3395,7 +3544,7 @@ body.sin-animaciones .chispas { display: none; }
     exportar() {
       // Dentro de un visor embebido (iframe) las descargas suelen estar bloqueadas: se ofrece copiar el texto.
       if (window.self !== window.top) return this.acciones['copiar-copia'].call(this);
-      descargar('agendaquest-copia-' + Fecha.hoy() + '.json', this.store.exportar());
+      descargar('al-dia-copia-' + Fecha.hoy() + '.json', this.store.exportar());
       this.aviso('Si no apareció la descarga, usá "Copiar copia como texto".', 'ok');
     },
 
@@ -3459,7 +3608,7 @@ body.sin-animaciones .chispas { display: none; }
     },
 
     pin(form, d) {
-      if (!this.store.verificarPin(d.pin)) {
+      if (!this._chequearPin(d.pin)) {
         this.ir('pin', { destino: this.params.destino, error: true }, { reemplazar: true });
         return;
       }
@@ -3542,6 +3691,7 @@ body.sin-animaciones .chispas { display: none; }
     },
 
     devolver(form, d) {
+      this._exigirPadre();
       this.store.devolver(form.dataset.id, d.nota);
       this.devolviendo = null;
       this.render();
@@ -3617,6 +3767,7 @@ body.sin-animaciones .chispas { display: none; }
       let sinGuardado = false;
       try {
         // Fase 2: cambiar esta línea por otro repositorio (por ejemplo, uno en la nube).
+        // La clave conserva el nombre viejo de la app a propósito: cambiarla haría perder los datos ya guardados.
         const repo = new AQ.LocalStorageRepository('agendaquest.v1');
         try {
           repo.almacenamiento.setItem('agendaquest.prueba', '1');

@@ -1,11 +1,11 @@
-# AgendaQuest
+# Al Día
 
 Agenda escolar con mascota virtual para estudiantes de secundaria, supervisada por el padre o la madre.
 Fase 1 de la propuesta: funciona en una sola computadora o celular, sin servidor, con los datos guardados en el navegador.
 
 ## Cómo usarla
 
-**Opción rápida:** abrí `dist/agendaquest.html` con doble clic. Es un solo archivo con todo adentro.
+**Opción rápida:** abrí `dist/al-dia.html` con doble clic. Es un solo archivo con todo adentro.
 
 **Opción proyecto:** abrí `index.html`. Es la misma app, con el código separado en archivos para leerlo y modificarlo.
 
@@ -19,8 +19,9 @@ Fase 1 de la propuesta: funciona en una sola computadora o celular, sin servidor
 2. Creás el perfil de tu hijo (nombre, año, nombre de la mascota).
 3. Tu hijo entra a su perfil y carga sus materias.
 4. Cada vez que le dan tarea, la anota con el botón **+** (suma 5 monedas y la mascota nace de su huevo con la primera).
-5. Cuando la termina, toca el casillero. Queda "esperando aprobación".
-6. Vos entrás al panel con el PIN, la aprobás (o la devolvés con una nota) y recién ahí se acreditan las monedas.
+5. Cuando la termina, toca el casillero: suma 3 monedas y queda "para validar".
+6. Te muestra el celular y toca **Validar con papá**. Ponés tu PIN ahí mismo, revisás cada tarea y la validás (o la devolvés con una nota). Al validar se acreditan las monedas grandes. También podés validar desde tu panel.
+   Después de 5 PIN incorrectos seguidos, la app bloquea 1 minuto para que no se pueda adivinar.
 7. En *Ajustes* cargás los premios reales que se pueden canjear.
 
 ## Reglas del juego
@@ -28,13 +29,14 @@ Fase 1 de la propuesta: funciona en una sola computadora o celular, sin servidor
 | Acción | Monedas |
 | --- | --- |
 | Anotar una tarea | +5 |
-| Tarea aprobada, hecha a tiempo | +15 |
-| Tarea aprobada, hecha tarde | +5 |
-| Sesión de estudio de examen aprobada | +10 |
+| Marcarla como hecha (una sola vez por tarea) | +3 |
+| Validada por el padre, hecha a tiempo | +15 |
+| Validada por el padre, hecha tarde | +5 |
+| Sesión de estudio de examen validada | +10 |
 | 5 días seguidos de revisión diaria con el padre | +20 |
 | Semana (lunes a domingo) sin tareas vencidas | +30 |
 | Pomodoro completo | +1 cada 5 minutos de foco (15 min = 3, 30 min = 6), hasta 30 por día |
-| Tarea borrada | se descuentan las 5 de anotarla |
+| Tarea borrada sin validar | se descuenta lo que dio (anotarla y marcarla) |
 | Comida diaria de la mascota | −5 |
 
 Los valores están en `js/rules.js` (`MONEDAS`) y se cambian en un solo lugar.

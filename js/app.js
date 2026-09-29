@@ -10,9 +10,9 @@
   const { Fecha } = AQ;
 
   const PANTALLAS_PADRE = ['padre', 'padre-ajustes', 'perfil-form', 'premio-form'];
-  const PANTALLAS_ESTUDIANTE = ['hoy', 'tarea-form', 'tarea', 'examenes', 'examen-form', 'examen', 'materias', 'materia-form', 'mascota', 'pomodoro', 'ajustes'];
+  const PANTALLAS_ESTUDIANTE = ['hoy', 'tarea-form', 'tarea', 'examenes', 'examen-form', 'examen', 'materias', 'materia-form', 'mascota', 'pomodoro', 'ajustes', 'validar'];
   const TITULOS = {
-    hoy: 'Hoy', perfiles: 'Perfiles', padre: 'Panel del padre', mascota: 'Mascota', examenes: 'Exámenes', materias: 'Materias', pomodoro: 'Pomodoro', ajustes: 'Configuración'
+    hoy: 'Hoy', perfiles: 'Perfiles', padre: 'Panel del padre', mascota: 'Mascota', examenes: 'Exámenes', materias: 'Materias', pomodoro: 'Pomodoro', ajustes: 'Configuración', validar: 'Validación'
   };
 
   function almacenSeguro() {
@@ -201,6 +201,8 @@
     ir(pantalla, params, opciones) {
       const op = opciones || {};
       params = params || {};
+      if (pantalla !== 'validar') this.validando = false;
+      else if (!this.validando) return this.ir('hoy', {}, op);
       if (PANTALLAS_PADRE.includes(pantalla) && !this.padreDesbloqueado) {
         return this.ir('pin', { destino: pantalla }, op);
       }
@@ -257,6 +259,8 @@
         '<h2 id="dialogo-titulo" class="titulo-chico">' + esc(op.titulo) + '</h2>' +
         (op.mensaje ? '<p class="texto-suave">' + esc(op.mensaje) + '</p>' : '') +
         (op.escribir ? '<label for="dialogo-campo" class="texto-chico">Escribí <b>' + esc(op.escribir) + '</b> para confirmar</label><input id="dialogo-campo" type="text" autocomplete="off">' : '') +
+        (op.clave ? '<label for="dialogo-campo" class="texto-chico">' + esc(op.clave) + '</label><input id="dialogo-campo" class="campo-pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off">' : '') +
+        (op.error ? '<p class="texto-error" role="alert">' + esc(op.error) + '</p>' : '') +
         (op.area ? '<textarea id="dialogo-campo" rows="8"' + (op.soloLectura ? ' readonly' : '') + ' aria-label="' + esc(op.titulo) + '">' + esc(op.valor || '') + '</textarea>' : '') +
         '<div class="fila-botones">' +
         (op.cancelar === null ? '' : '<button type="button" class="boton secundario" data-dialogo="no">' + esc(op.cancelar || 'Cancelar') + '</button>') +
@@ -293,6 +297,7 @@
             if (campo.value.trim().toUpperCase() !== op.escribir) { campo.focus(); campo.setAttribute('aria-invalid', 'true'); return; }
             return cerrar(true);
           }
+          if (op.clave) return cerrar(campo.value);
           cerrar(op.area && !op.soloLectura ? campo.value : true);
         });
       });
@@ -345,6 +350,31 @@
       });
     }
 
+    /**
+     * Verifica el PIN del padre. Después de 5 intentos fallidos bloquea 1 minuto,
+     * para que no se pueda adivinar probando números.
+     */
+    /** Las acciones de validar solo valen con el panel del padre abierto o con el PIN recién puesto. */
+    _exigirPadre() {
+      if (!this.modoPadre && !this.validando) throw new AQ.ErrorValidacion('Para validar hace falta el PIN de papá.');
+    }
+
+    _chequearPin(pin) {
+      const ahora = Date.now();
+      if (this.pinBloqueadoHasta && ahora < this.pinBloqueadoHasta) {
+        const seg = Math.ceil((this.pinBloqueadoHasta - ahora) / 1000);
+        throw new AQ.ErrorValidacion('Demasiados intentos. Esperá ' + seg + ' segundos.');
+      }
+      if (this.store.verificarPin(pin)) { this.intentosPin = 0; return true; }
+      this.intentosPin = (this.intentosPin || 0) + 1;
+      if (this.intentosPin >= 5) {
+        this.intentosPin = 0;
+        this.pinBloqueadoHasta = ahora + 60000;
+        throw new AQ.ErrorValidacion('PIN incorrecto 5 veces. Esperá 1 minuto.');
+      }
+      return false;
+    }
+
     _importarTexto(texto) {
       this.store.importar(texto);
       this.padreDesbloqueado = false;
@@ -389,13 +419,56 @@
     },
 
     marcar(el) {
-      this.store.marcarHecha(el.dataset.id);
+      const monedas = this.store.marcarHecha(el.dataset.id);
       this.felizHasta = Date.now() + 3500;
-      this.mensajeFeliz = '¡Bien ahí! Cuando tu papá la apruebe, sumás monedas.';
+      this.mensajeFeliz = '¡Bien ahí! Mostrásela a tu papá: cuando la valide, sumás más monedas.';
       if (this.pantalla === 'tarea') this.atras('hoy');
       else this.render();
       setTimeout(() => { if (!this.felizActivo()) this.render(); }, 3600);
-      this.aviso('¡Bien! Ahora tu papá la revisa.', 'ok');
+      this.aviso(monedas ? '¡Hecha! +' + monedas + ' monedas. Validala con papá para ganar más.' : 'Hecha. Validala con papá para ganar las monedas.', 'ok');
+    },
+
+    /** El padre valida en el celular del estudiante: pide el PIN en un diálogo y abre la pantalla de validación. */
+    async validar() {
+      let error = '';
+      for (;;) {
+        const pin = await this.dialogo({
+          titulo: 'Validación de papá',
+          mensaje: 'Pasale el celular a tu papá para que ponga su PIN.',
+          clave: 'PIN del padre (4 números)',
+          confirmar: 'Validar',
+          error
+        });
+        if (pin === false) return;
+        try {
+          if (this._chequearPin(pin)) break;
+          error = 'PIN incorrecto. Probá de nuevo.';
+        } catch (e) {
+          if (e instanceof AQ.ErrorValidacion) { error = e.message; continue; }
+          throw e;
+        }
+      }
+      this.validando = true;
+      this.devolviendo = null;
+      this.ir('validar');
+    },
+
+    'aprobar-todas'() {
+      this._exigirPadre();
+      const lista = this.store.tareasDe(this.perfilId).filter((t) => t.estado === 'enviada');
+      let total = 0;
+      lista.forEach((t) => { total += this.store.aprobar(t.id); });
+      this.aviso('Validadas ' + lista.length + ' tareas: +' + total + ' monedas.', 'ok');
+    },
+
+    'terminar-validar'() {
+      this.validando = false;
+      this.devolviendo = null;
+      this.felizHasta = Date.now() + 3500;
+      this.mensajeFeliz = '¡Qué bien! Papá validó tus tareas.';
+      this.historial = [];
+      this.ir('hoy', {}, { sinHistorial: true });
+      setTimeout(() => { if (!this.felizActivo()) this.render(); }, 3600);
     },
 
     desmarcar(el) {
@@ -406,7 +479,8 @@
     async 'borrar-tarea'(el) {
       const t = this.store.tarea(el.dataset.id);
       if (!t) return;
-      const descuento = t.creadaPor === 'estudiante' ? 'Se descuentan las ' + AQ.reglas.MONEDAS.ANOTAR + ' monedas que dio anotarla.' : '';
+      const dio = this.store.monedasDeTarea(t.id);
+      const descuento = dio ? 'Se descuentan las ' + dio + ' monedas que ya te dio.' : '';
       if (!await this.dialogo({ titulo: '¿Borrar "' + t.titulo + '"?', mensaje: descuento, confirmar: 'Borrar', peligro: true })) return;
       this.store.eliminarTarea(t.id);
       if (this.pantalla === 'tarea') this.atras(this.modoPadre ? 'padre' : 'hoy');
@@ -480,13 +554,15 @@
     },
 
     aprobar(el) {
+      this._exigirPadre();
       const t = this.store.tarea(el.dataset.id);
       const monto = this.store.aprobar(el.dataset.id);
       const p = this.store.perfil(t.perfilId);
-      this.aviso('Aprobada: +' + monto + ' monedas para ' + p.nombre + '.', 'ok');
+      this.aviso('Validada: +' + monto + ' monedas para ' + p.nombre + '.', 'ok');
     },
 
     devolver(el) {
+      this._exigirPadre();
       this.devolviendo = el.dataset.id;
       this.render();
       const input = this.raiz.querySelector('.form-devolver input');
@@ -545,7 +621,7 @@
     exportar() {
       // Dentro de un visor embebido (iframe) las descargas suelen estar bloqueadas: se ofrece copiar el texto.
       if (window.self !== window.top) return this.acciones['copiar-copia'].call(this);
-      descargar('agendaquest-copia-' + Fecha.hoy() + '.json', this.store.exportar());
+      descargar('al-dia-copia-' + Fecha.hoy() + '.json', this.store.exportar());
       this.aviso('Si no apareció la descarga, usá "Copiar copia como texto".', 'ok');
     },
 
@@ -609,7 +685,7 @@
     },
 
     pin(form, d) {
-      if (!this.store.verificarPin(d.pin)) {
+      if (!this._chequearPin(d.pin)) {
         this.ir('pin', { destino: this.params.destino, error: true }, { reemplazar: true });
         return;
       }
@@ -692,6 +768,7 @@
     },
 
     devolver(form, d) {
+      this._exigirPadre();
       this.store.devolver(form.dataset.id, d.nota);
       this.devolviendo = null;
       this.render();
@@ -767,6 +844,7 @@
       let sinGuardado = false;
       try {
         // Fase 2: cambiar esta línea por otro repositorio (por ejemplo, uno en la nube).
+        // La clave conserva el nombre viejo de la app a propósito: cambiarla haría perder los datos ya guardados.
         const repo = new AQ.LocalStorageRepository('agendaquest.v1');
         try {
           repo.almacenamiento.setItem('agendaquest.prueba', '1');

@@ -8,6 +8,62 @@
   const esc = util.esc;
   const V = AQ.vistas = AQ.vistas || {};
 
+  /** Monedas que da validar esta tarea ahora, y cómo se hizo. */
+  function premioValidar(t) {
+    if (t.tipo === 'sesion') return { monto: reglas.MONEDAS.SESION, cuando: 'sesión de estudio' };
+    if (Fecha.diferencia(t.enviadaEl, t.vence) < 0) return { monto: reglas.MONEDAS.TARDE, cuando: 'hecha tarde' };
+    return { monto: reglas.MONEDAS.A_TIEMPO, cuando: 'a tiempo' };
+  }
+  V.premioValidar = premioValidar;
+
+  /**
+   * Una tarea esperando validación, con los botones del padre.
+   * enCelular: true en la pantalla de validación rápida (muestra detalle y foto grande, sin link a la tarea).
+   */
+  V.itemAprobar = function (app, t, p, enCelular) {
+    const s = app.store;
+    const m = s.materia(t.materiaId);
+    const { monto, cuando } = premioValidar(t);
+    const devolviendo = app.devolviendo === t.id;
+    const meta = ui.puntoMateria(m) + esc(m ? m.nombre : '') + ' · vence ' + esc(Fecha.relativa(t.vence)) + ' · ' + cuando + (t.foto && !enCelular ? ' · con foto' : '');
+    const cuerpo = enCelular
+      ? '<div class="fila-cuerpo"><span class="meta">' + meta + '</span><span class="fila-titulo">' + esc(t.titulo) + '</span>' +
+        (t.detalle ? '<span class="texto-chico">' + esc(t.detalle) + '</span>' : '') + '</div>' +
+        (t.foto ? '<img class="foto-validar" src="' + t.foto + '" alt="Foto adjunta a la tarea">' : '')
+      : '<button type="button" class="fila-cuerpo" data-accion="ir" data-pantalla="tarea" data-id="' + t.id + '">' +
+        '<span class="meta">' + meta + '</span><span class="fila-titulo">' + esc(t.titulo) + '</span></button>';
+    return '<div class="item-aprobar">' + cuerpo +
+      (devolviendo
+        ? '<form class="form-devolver" data-form="devolver" data-id="' + t.id + '"><label for="nota-' + t.id + '">Nota para ' + esc(p.nombre) + '</label>' +
+          '<input id="nota-' + t.id + '" name="nota" type="text" maxlength="200" placeholder="Ej.: falta el ejercicio 4" autofocus>' +
+          '<div class="fila-botones"><button type="button" class="boton secundario chico" data-accion="cancelar-devolver">Cancelar</button><button class="boton primario chico" type="submit">Devolver</button></div></form>'
+        : '<div class="fila-botones"><button type="button" class="boton secundario chico" data-accion="devolver" data-id="' + t.id + '">Devolver con nota</button>' +
+          '<button type="button" class="boton primario chico" data-accion="aprobar" data-id="' + t.id + '">Validar · +' + monto + '</button></div>') +
+      '</div>';
+  };
+
+  /** Validación rápida en el celular del estudiante: el padre ya puso su PIN. */
+  V.validar = function (app) {
+    const s = app.store;
+    const p = app.perfil();
+    const enviadas = s.tareasDe(p.id).filter((t) => t.estado === 'enviada').sort((a, b) => a.vence.localeCompare(b.vence));
+    const total = enviadas.reduce((acc, t) => acc + premioValidar(t).monto, 0);
+    const m = s.mascota(p.id);
+    return '<main class="pantalla">' +
+      '<header class="barra"><h1 class="titulo-pixel">Validación de papá</h1>' +
+      '<div class="barra-extra"><span class="chip-mini">' + ui.icono('candado', 14) + ' PIN correcto</span></div></header>' +
+      (enviadas.length
+        ? '<p class="texto-suave">' + esc(p.nombre) + ' te muestra lo que hizo. Revisalo en la carpeta o el cuaderno y validalo.</p>' +
+          enviadas.map((t) => V.itemAprobar(app, t, p, true)).join('') +
+          (enviadas.length > 1 ? '<button type="button" class="boton secundario ancho" data-accion="aprobar-todas">Validar todas · +' + total + '</button>' : '')
+        : '<section class="tarjeta centro validado">' +
+          AQ.dibujarMascota({ etapa: m.etapa, estado: 'feliz', color: m.color, tamanio: 120 }) +
+          '<h2 class="titulo-pixel">¡Todo revisado!</h2>' +
+          '<p class="texto-suave">No queda nada esperando validación.</p></section>') +
+      '<button type="button" class="boton primario ancho grande" data-accion="terminar-validar">Listo, devolver el celular</button>' +
+      '</main>';
+  };
+
   V.pin = function (app) {
     return '<main class="pantalla centrada">' +
       ui.encabezado('Panel del padre', 'perfiles') +
@@ -56,25 +112,7 @@
 
     // Para aprobar
     const enviadas = s.tareasDe(p.id).filter((t) => t.estado === 'enviada').sort((a, b) => a.vence.localeCompare(b.vence));
-    const aprobar = enviadas.map((t) => {
-      const m = s.materia(t.materiaId);
-      let monto = reglas.MONEDAS.A_TIEMPO;
-      let cuando = 'a tiempo';
-      if (t.tipo === 'sesion') { monto = reglas.MONEDAS.SESION; cuando = 'sesión de estudio'; }
-      else if (Fecha.diferencia(t.enviadaEl, t.vence) < 0) { monto = reglas.MONEDAS.TARDE; cuando = 'hecha tarde'; }
-      const devolviendo = app.devolviendo === t.id;
-      return '<div class="item-aprobar">' +
-        '<button type="button" class="fila-cuerpo" data-accion="ir" data-pantalla="tarea" data-id="' + t.id + '">' +
-        '<span class="meta">' + ui.puntoMateria(m) + esc(m ? m.nombre : '') + ' · vence ' + esc(Fecha.relativa(t.vence)) + ' · ' + cuando + (t.foto ? ' · con foto' : '') + '</span>' +
-        '<span class="fila-titulo">' + esc(t.titulo) + '</span></button>' +
-        (devolviendo
-          ? '<form class="form-devolver" data-form="devolver" data-id="' + t.id + '"><label for="nota-' + t.id + '">Nota para ' + esc(p.nombre) + '</label>' +
-            '<input id="nota-' + t.id + '" name="nota" type="text" maxlength="200" placeholder="Ej.: falta el ejercicio 4" autofocus>' +
-            '<div class="fila-botones"><button type="button" class="boton secundario chico" data-accion="cancelar-devolver">Cancelar</button><button class="boton primario chico" type="submit">Devolver</button></div></form>'
-          : '<div class="fila-botones"><button type="button" class="boton secundario chico" data-accion="devolver" data-id="' + t.id + '">Devolver con nota</button>' +
-            '<button type="button" class="boton primario chico" data-accion="aprobar" data-id="' + t.id + '">Aprobar · +' + monto + '</button></div>') +
-        '</div>';
-    }).join('');
+    const aprobar = enviadas.map((t) => V.itemAprobar(app, t, p, false)).join('');
 
     // Canjes
     const canjes = s.canjesDe(p.id).filter((c) => !c.entregado);
