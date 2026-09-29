@@ -57,7 +57,7 @@
           enviadas.map((t) => V.itemAprobar(app, t, p, true)).join('') +
           (enviadas.length > 1 ? '<button type="button" class="boton secundario ancho" data-accion="aprobar-todas">Validar todas · +' + total + '</button>' : '')
         : '<section class="tarjeta centro validado">' +
-          AQ.dibujarMascota({ etapa: m.etapa, estado: 'feliz', color: m.color, tamanio: 120 }) +
+          AQ.dibujarMascota({ etapa: m.etapa, estado: 'feliz', color: m.color, tamanio: 120, grietas: m.validadas }) +
           '<h2 class="titulo-pixel">¡Todo revisado!</h2>' +
           '<p class="texto-suave">No queda nada esperando validación.</p></section>') +
       '<button type="button" class="boton primario ancho grande" data-accion="terminar-validar">Listo, devolver el celular</button>' +
@@ -182,7 +182,10 @@
       (barrasMateria ? barrasMateria + '<p class="texto-chico">En naranja, las materias por debajo del 70%.</p>' : '<p class="texto-suave">Aparece cuando haya tareas vencidas en el período.</p>') + '</section>' +
       (function () {
         const m = s.mascota(p.id);
-        if (m.etapa === 'huevo') return '';
+        if (m.etapa === 'huevo') {
+          return '<section class="tarjeta"><h2 class="titulo-chico">Mascota: todavía es un huevo</h2>' +
+            '<p class="texto-chico">Sale cuando valides ' + reglas.TAREAS_PARA_NACER + ' tareas. Van <b>' + m.validadas + '</b>. Las monedas se siguen juntando igual.</p></section>';
+        }
         return '<section class="tarjeta"><div class="fila-entre"><h2 class="titulo-chico">Mascota: ' + esc(m.nombre) + '</h2>' + ui.vida(m.vida, reglas.VIDA.MAX) + '</div>' +
           '<p class="texto-chico">' + (m.comioHoy ? 'Hoy ya comió.' : 'Hoy todavía no comió.') + ' Come una vez por día (' + reglas.VIDA.COSTO_COMIDA + ' monedas) y pierde 1 de vida por cada día sin comer. Nunca se muere.</p>' +
           '<div class="fila-entre"><span class="texto-chico">' + (m.vacaciones ? '<b class="ok">Modo vacaciones activo:</b> no pierde vida.' : 'Para feriados largos o vacaciones, pausá el hambre.') + '</span>' +

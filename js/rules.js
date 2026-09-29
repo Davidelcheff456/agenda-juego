@@ -52,9 +52,12 @@
 
   function nivelDesdeXp(xp) { return 1 + Math.floor(xp / XP_POR_NIVEL); }
 
-  /** Etapa de la mascota: huevo hasta anotar la primera tarea; después según el nivel. */
-  function etapa(nivel, tieneTareas) {
-    if (!tieneTareas) return 'huevo';
+  /** Tareas que el padre tiene que validar para que la mascota salga del huevo. */
+  const TAREAS_PARA_NACER = 3;
+
+  /** Etapa de la mascota: huevo hasta que el padre valida 3 tareas; después según el nivel. */
+  function etapa(nivel, nacida) {
+    if (!nacida) return 'huevo';
     if (nivel <= 3) return 'bebe';
     if (nivel <= 7) return 'joven';
     return 'adulto';
@@ -151,7 +154,7 @@
   }
 
   AQ.reglas = {
-    MONEDAS, XP_POR_NIVEL, VIDA, COLORES_MATERIA, COSMETICOS, NOMBRE_ETAPA, PROXIMA_ETAPA, TEXTO_ESTADO,
+    MONEDAS, XP_POR_NIVEL, VIDA, TAREAS_PARA_NACER, COLORES_MATERIA, COSMETICOS, NOMBRE_ETAPA, PROXIMA_ETAPA, TEXTO_ESTADO,
     color, fondo, nivelDesdeXp, etapa, estadoMascota, mensajeMascota
   };
   AQ.PlanEspaciado = PlanEspaciado;

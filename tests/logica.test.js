@@ -125,26 +125,72 @@ prueba('examen crea sesiones que dan +10', () => {
   assert.strictEqual(s.sesionesDe(x.id).length, 1); // la aprobada queda en el historial
 });
 
+/** Valida 3 tareas para que la mascota salga del huevo. Da 3 × (5 + 3 + 15) = 69 monedas. */
+function hacerNacer(s, p, m) {
+  for (let i = 0; i < 3; i++) {
+    const t = s.agregarTarea(p.id, { materiaId: m.id, titulo: 'Nacer ' + i, vence: '2026-12-31' });
+    s.marcarHecha(t.id);
+    s.aprobar(t.id);
+  }
+}
+
+prueba('huevo: nace recién con 3 tareas validadas', () => {
+  const { s, p, m } = nuevoStore();
+  const ts = [0, 1, 2].map((i) => s.agregarTarea(p.id, { materiaId: m.id, titulo: 'T' + i, vence: '2026-10-20' }));
+  ts.forEach((t) => s.marcarHecha(t.id));
+  assert.strictEqual(s.mascota(p.id).etapa, 'huevo');       // anotadas y marcadas no alcanzan
+  s.aprobar(ts[0].id); s.aprobar(ts[1].id);
+  assert.strictEqual(s.mascota(p.id).etapa, 'huevo');
+  assert.strictEqual(s.mascota(p.id).validadas, 2);
+  assert.ok(s.saldo(p.id) > 0);                              // las monedas se juntan igual
+  assert.throws(() => s.alimentar(p.id), AQ.ErrorValidacion); // un huevo no come
+  assert.ok(!s.nacimientoPendiente(p.id));
+  s.aprobar(ts[2].id);
+  assert.strictEqual(s.mascota(p.id).etapa, 'bebe');
+  assert.ok(s.nacimientoPendiente(p.id));
+  assert.strictEqual(s.perfil(p.id).mascota.nacioEl, '2026-09-28');
+  s.marcarNacimientoVisto(p.id);
+  assert.ok(!s.nacimientoPendiente(p.id));
+});
+
+prueba('huevo: las sesiones de estudio no cuentan para nacer', () => {
+  const { s, p, m } = nuevoStore();
+  const x = s.agregarExamen(p.id, { materiaId: m.id, fecha: '2026-10-05' });
+  Fecha.fijar('2026-10-04');
+  s.sesionesDe(x.id).forEach((t) => { s.marcarHecha(t.id); s.aprobar(t.id); });
+  assert.strictEqual(s.mascota(p.id).etapa, 'huevo');
+});
+
 prueba('mascota: estados por prioridad', () => {
   const { s, p, m } = nuevoStore();
-  assert.strictEqual(s.mascota(p.id).etapa, 'huevo');
+  hacerNacer(s, p, m);
   const t = s.agregarTarea(p.id, { materiaId: m.id, titulo: 'X', vence: '2026-09-29' });
-  assert.strictEqual(s.mascota(p.id).etapa, 'bebe');
   assert.strictEqual(s.mascota(p.id).estado, 'hambriento'); // no comió hoy
   s.alimentar(p.id);
   assert.strictEqual(s.mascota(p.id).estado, 'preocupado'); // algo para mañana
   Fecha.fijar('2026-10-01');
   s.actualizarVida(p.id);
-  assert.strictEqual(s.mascota(p.id).estado, 'triste');     // tarea vencida
+  assert.strictEqual(s.perfil(p.id).vida.valor, 3);         // no comió el 29 ni el 30
+  assert.strictEqual(s.mascota(p.id).estado, 'triste');      // la tarea del 29 venció
+});
+
+prueba('mascota: triste con tarea vencida', () => {
+  const { s, p, m } = nuevoStore();
+  hacerNacer(s, p, m);
+  const t = s.agregarTarea(p.id, { materiaId: m.id, titulo: 'X', vence: '2026-09-29' });
+  Fecha.fijar('2026-09-30');
+  s.actualizarVida(p.id);                                     // no comió el 29: vida 4
+  s.alimentar(p.id);
+  assert.strictEqual(s.mascota(p.id).estado, 'triste');
   s.marcarHecha(t.id);
-  assert.strictEqual(s.mascota(p.id).estado, 'hambriento');
+  assert.strictEqual(s.mascota(p.id).estado, 'tranquilo');
 });
 
 prueba('vida: pierde 1 por día sin comer, nunca baja de 0', () => {
   const { s, p, m } = nuevoStore();   // lunes 28
-  s.agregarTarea(p.id, { materiaId: m.id, titulo: 'X', vence: '2026-10-20' }); // +5, nace
+  hacerNacer(s, p, m);                // nace el 28 con 69 monedas
   s.alimentar(p.id);                  // come el 28
-  assert.strictEqual(s.saldo(p.id), 0);
+  assert.strictEqual(s.saldo(p.id), 64);
   assert.throws(() => s.alimentar(p.id), AQ.ErrorValidacion); // una vez por día
   Fecha.fijar('2026-10-02');          // no entró el 29, 30 ni 1
   assert.strictEqual(s.actualizarVida(p.id), 3);
@@ -154,27 +200,26 @@ prueba('vida: pierde 1 por día sin comer, nunca baja de 0', () => {
   Fecha.fijar('2026-10-10');
   s.actualizarVida(p.id);
   assert.strictEqual(s.perfil(p.id).vida.valor, 0);
-  assert.throws(() => s.alimentar(p.id), AQ.ErrorValidacion); // sin monedas
 });
 
-prueba('vida: comer recupera y el huevo no pierde vida', () => {
+prueba('vida: el huevo no pierde vida y comer recupera', () => {
   const { s, p, m } = nuevoStore();
   Fecha.fijar('2026-10-05');
   assert.strictEqual(s.actualizarVida(p.id), 0); // todavía huevo
   assert.strictEqual(s.perfil(p.id).vida.valor, 5);
-  for (let i = 0; i < 4; i++) s.agregarTarea(p.id, { materiaId: m.id, titulo: 'T' + i, vence: '2026-10-20' });
+  hacerNacer(s, p, m);                            // nace el 5
   Fecha.fijar('2026-10-08');
-  assert.strictEqual(s.actualizarVida(p.id), 2); // días 6 y 7 sin comer
+  assert.strictEqual(s.actualizarVida(p.id), 2);  // días 6 y 7 sin comer
   assert.strictEqual(s.alimentar(p.id), 1);
   assert.strictEqual(s.perfil(p.id).vida.valor, 4);
   const movs = s.movimientosDe(p.id);
   assert.strictEqual(movs[movs.length - 1].cantidad, -5);
-  assert.strictEqual(s.xp(p.id), 20); // la comida no resta experiencia
+  assert.strictEqual(s.xp(p.id), 69);             // la comida no resta experiencia
 });
 
 prueba('vida: modo vacaciones pausa el hambre', () => {
   const { s, p, m } = nuevoStore();
-  s.agregarTarea(p.id, { materiaId: m.id, titulo: 'X', vence: '2026-10-20' });
+  hacerNacer(s, p, m);
   s.ponerVacaciones(p.id, true);
   Fecha.fijar('2026-10-20');
   assert.strictEqual(s.actualizarVida(p.id), 0);

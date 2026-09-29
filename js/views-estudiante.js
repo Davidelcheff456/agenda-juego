@@ -34,15 +34,15 @@
       const m = s.mascota(p.id);
       const r = m.resumen;
       let estado = '<span class="ok">Todo al día</span>';
-      if (r.tieneTareas && r.vida <= reglas.VIDA.DEBIL) estado = '<span class="mal">¡La mascota está débil!</span>';
-      else if (r.tieneTareas && !r.comioHoy && !r.vacaciones) estado = '<span class="alerta">La mascota tiene hambre</span>';
+      if (r.nacida && r.vida <= reglas.VIDA.DEBIL) estado = '<span class="mal">¡La mascota está débil!</span>';
+      else if (r.nacida && !r.comioHoy && !r.vacaciones) estado = '<span class="alerta">La mascota tiene hambre</span>';
       else if (r.vencidas) estado = '<span class="mal">' + r.vencidas + (r.vencidas === 1 ? ' vencida' : ' vencidas') + '</span>';
       else if (r.urgentes) estado = '<span class="alerta">' + r.urgentes + ' para hoy o mañana</span>';
       else if (!r.tieneTareas) estado = '<span class="texto-suave">Sin tareas todavía</span>';
       return '<button type="button" class="tarjeta-perfil" data-accion="entrar" data-id="' + p.id + '">' +
-        AQ.dibujarMascota({ etapa: m.etapa, estado: m.estado, color: m.color, tamanio: 88 }) +
+        AQ.dibujarMascota({ etapa: m.etapa, estado: m.estado, color: m.color, tamanio: 88, grietas: m.validadas }) +
         '<span class="nombre-perfil">' + esc(p.nombre) + '</span>' +
-        (r.tieneTareas ? ui.vida(m.vida, reglas.VIDA.MAX, true) : '') +
+        (r.nacida ? ui.vida(m.vida, reglas.VIDA.MAX, true) : '<span class="texto-chico">Huevo · ' + m.validadas + ' de ' + reglas.TAREAS_PARA_NACER + '</span>') +
         '<span class="monedas">' + ui.moneda(14) + s.saldo(p.id) + '</span>' +
         '<span class="texto-chico">' + estado + '</span></button>';
     }).join('');
@@ -65,8 +65,11 @@
     const feliz = app.felizActivo();
     const estado = feliz ? 'feliz' : m.estado;
     const info = reglas.TEXTO_ESTADO[estado];
+    const faltan = reglas.TAREAS_PARA_NACER - m.validadas;
     const mensaje = m.etapa === 'huevo'
-      ? 'Soy un huevo. Anotá tu primera tarea y nazco.'
+      ? (m.validadas === 0
+        ? 'Soy un huevo. Cuando papá te valide ' + reglas.TAREAS_PARA_NACER + ' tareas, salgo. Mientras tanto, las monedas se guardan.'
+        : '¡El huevo se está rajando! ' + (faltan === 1 ? 'Falta 1 tarea validada' : 'Faltan ' + faltan + ' tareas validadas') + ' para que salga.')
       : (feliz && app.mensajeFeliz) ? app.mensajeFeliz : reglas.mensajeMascota(estado, m.resumen, m.nombre);
     const costo = reglas.VIDA.COSTO_COMIDA;
     let comida = '';
@@ -77,14 +80,17 @@
       if (m.vacaciones) comida += '<span class="chip-mini">Modo vacaciones: no pierde vida</span>';
     }
     return '<section class="tarjeta-mascota' + (grande ? ' grande' : '') + '" style="background:' + m.fondo.css + '" aria-label="Tu mascota">' +
-      '<div class="mascota-caja' + (feliz ? ' salta' : '') + '">' +
-      AQ.dibujarMascota({ etapa: m.etapa, estado, color: m.color, tamanio: grande ? 144 : 96 }) +
+      '<div class="mascota-caja' + (feliz ? ' salta' : '') + (m.etapa === 'huevo' && m.validadas > 0 ? ' tiembla' : '') + '">' +
+      AQ.dibujarMascota({ etapa: m.etapa, estado, color: m.color, tamanio: grande ? 144 : 96, grietas: m.validadas }) +
       (feliz ? '<span class="chispas" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' : '') +
       '</div>' +
       '<div class="mascota-info">' +
       '<div class="fila-entre"><span class="titulo-pixel">' + esc(m.nombre) + '</span><span class="estado-mascota" style="color:' + info.color + '">' + (m.etapa === 'huevo' ? 'Huevo' : info.nombre) + '</span></div>' +
       '<p class="mensaje-mascota" aria-live="polite">' + esc(mensaje) + '</p>' +
-      (m.etapa === 'huevo' ? '' :
+      (m.etapa === 'huevo'
+        ? '<div class="progreso-huevo" role="img" aria-label="' + m.validadas + ' de ' + reglas.TAREAS_PARA_NACER + ' tareas validadas">' +
+          Array.from({ length: reglas.TAREAS_PARA_NACER }, (_, i) => '<i class="' + (i < m.validadas ? 'lleno' : '') + '"></i>').join('') +
+          '<span>' + m.validadas + ' de ' + reglas.TAREAS_PARA_NACER + ' tareas validadas</span></div>' :
         '<div class="medidores"><span>Vida</span>' + ui.vida(m.vida, reglas.VIDA.MAX) +
         '<span>Ánimo</span>' + ui.barra(m.animo, '#6EC5FF', 'Ánimo') + '</div>' +
         '<div class="fila-comida">' + comida + '</div>') +
@@ -405,7 +411,7 @@
       '<section class="tarjeta">' +
       '<div class="fila-entre"><b>Nivel ' + m.nivel + ' · ' + reglas.NOMBRE_ETAPA[m.etapa] + '</b><span class="texto-chico">' + xpNivel + ' / ' + reglas.XP_POR_NIVEL + '</span></div>' +
       ui.barra(100 * xpNivel / reglas.XP_POR_NIVEL, '#C6F25B', 'Experiencia del nivel') +
-      '<p class="texto-chico">' + (m.etapa === 'huevo' ? 'Anotá tu primera tarea para que nazca.' : prox ? 'Evoluciona a ' + prox.nombre + ' en el nivel ' + prox.nivel + '.' : 'Ya llegó a su última etapa. ¡Crack!') + '</p>' +
+      '<p class="texto-chico">' + (m.etapa === 'huevo' ? 'Sale del huevo cuando papá te valide ' + reglas.TAREAS_PARA_NACER + ' tareas (van ' + m.validadas + ').' : prox ? 'Evoluciona a ' + prox.nombre + ' en el nivel ' + prox.nivel + '.' : 'Ya llegó a su última etapa. ¡Crack!') + '</p>' +
       '</section>' +
       '<section class="seccion"><div class="fila-entre"><h2 class="titulo-seccion">Premios reales</h2><span class="texto-chico">los define papá</span></div>' +
       (premios ? '<ul class="lista-simple">' + premios + '</ul>' : ui.vacio('Todavía no hay premios. Pedile a tu papá que cargue algunos.')) + '</section>' +

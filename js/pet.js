@@ -51,11 +51,26 @@
     ).join('');
   }
 
+  // Grietas del huevo: aparecen a medida que el padre valida tareas.
+  const GRIETA = '#4E4838';
+  const GRIETAS = [
+    [],
+    [[4, 7, 1, 1], [5, 8, 1, 1], [6, 7, 1, 1], [7, 8, 1, 1]],
+    [[4, 7, 1, 1], [5, 8, 1, 1], [6, 7, 1, 1], [7, 8, 1, 1], [8, 7, 1, 1], [9, 8, 1, 1], [10, 7, 1, 1], [11, 8, 1, 1], [7, 9, 1, 1], [7, 10, 1, 1]],
+    [[3, 7, 1, 1], [4, 7, 1, 1], [5, 8, 1, 1], [6, 7, 1, 1], [7, 8, 1, 1], [8, 7, 1, 1], [9, 8, 1, 1], [10, 7, 1, 1], [11, 8, 1, 1], [12, 7, 1, 1],
+      [7, 9, 1, 1], [7, 10, 1, 1], [9, 5, 1, 1], [9, 6, 1, 1]]
+  ];
+
+  function svg(contenido, tam, alt) {
+    return '<svg class="mascota-svg" width="' + tam + '" height="' + tam + '" viewBox="0 0 16 16" shape-rendering="crispEdges"' +
+      (alt ? ' role="img" aria-label="' + alt + '"' : ' aria-hidden="true"') + '>' + contenido + '</svg>';
+  }
+
   const NOMBRE_ESTADO = { feliz: 'feliz', tranquilo: 'con la panza llena', hambriento: 'con hambre', preocupado: 'preocupada', triste: 'triste', debil: 'débil' };
   const COLOR_DEBIL = '#8E9884';
 
   /**
-   * @param {object} o { etapa, estado, color: {cuerpo, triste}, tamanio }
+   * @param {object} o { etapa, estado, color: {cuerpo, triste}, tamanio, grietas (0-3, solo huevo) }
    * @returns {string} SVG
    */
   function dibujarMascota(o) {
@@ -64,10 +79,28 @@
     const tam = o.tamanio || 96;
     const colorCuerpo = estado === 'debil' ? COLOR_DEBIL : (estado === 'triste' ? o.color.triste : o.color.cuerpo);
     let contenido = rects(CUERPOS[etapa], colorCuerpo);
-    if (etapa !== 'huevo') contenido += rects(CARAS[estado], OSCURO, ALTURA_CARA[etapa]);
+    if (etapa === 'huevo') contenido += rects(GRIETAS[Math.max(0, Math.min(3, o.grietas || 0))], GRIETA);
+    else contenido += rects(CARAS[estado], OSCURO, ALTURA_CARA[etapa]);
     const alt = etapa === 'huevo' ? 'Mascota: todavía es un huevo' : 'Mascota ' + NOMBRE_ESTADO[estado];
-    return '<svg class="mascota-svg" width="' + tam + '" height="' + tam + '" viewBox="0 0 16 16" shape-rendering="crispEdges" role="img" aria-label="' + alt + '">' + contenido + '</svg>';
+    return svg(contenido, tam, alt);
+  }
+
+  /**
+   * Escena de nacimiento: el huevo tiembla, se parte en dos y sale el bebé.
+   * El estado final (bebé visible) es el estilo base; la animación solo lo recorre,
+   * así con las animaciones apagadas se ve directamente el resultado.
+   */
+  function escenaNacimiento(color, tam) {
+    const huevo = rects(CUERPOS.huevo, '#EDE6D3') + rects(GRIETAS[3], GRIETA);
+    return '<div class="escena-nacimiento" style="width:' + tam + 'px;height:' + tam + 'px">' +
+      '<div class="nac-huevo">' + svg(huevo, tam) + '</div>' +
+      '<div class="nac-mitad arriba">' + svg(huevo, tam) + '</div>' +
+      '<div class="nac-mitad abajo">' + svg(huevo, tam) + '</div>' +
+      '<div class="nac-bebe">' + dibujarMascota({ etapa: 'bebe', estado: 'feliz', color, tamanio: tam }) + '</div>' +
+      '<span class="chispas nac-chispas" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' +
+      '</div>';
   }
 
   AQ.dibujarMascota = dibujarMascota;
+  AQ.escenaNacimiento = escenaNacimiento;
 })(globalThis.AQ = globalThis.AQ || {});

@@ -70,6 +70,7 @@
       this.temporizador = new AQ.Temporizador(almacenSeguro());
       this.sonido = new AQ.Sonido();
       this.barraPomodoro = document.getElementById('pomo-barra');
+      this.zonaNacimiento = document.getElementById('nacimiento');
       this.mensajeFeliz = null;
       this.diaActual = Fecha.hoy();
       this.store.suscribir(() => this.render());
@@ -239,7 +240,41 @@
       this.raiz.innerHTML = vista ? vista(this) : '';
       this.raiz.dataset.pantalla = this.pantalla;
       this._aplicarAjustes();
+      this._mostrarNacimiento();
       this._pintarPomodoro();
+    }
+
+    /**
+     * Si la mascota salió del huevo y el estudiante todavía no lo vio, muestra la escena de nacimiento
+     * encima de Hoy o de la pantalla de la mascota (no en el panel del padre ni durante la validación).
+     */
+    _mostrarNacimiento() {
+      const zona = this.zonaNacimiento;
+      if (!zona) return;
+      const mostrar = !this.modoPadre && !this.validando && ['hoy', 'mascota'].includes(this.pantalla) &&
+        this.perfil() && this.store.nacimientoPendiente(this.perfilId);
+      if (!mostrar) { if (zona.innerHTML) zona.innerHTML = ''; return; }
+      if (zona.dataset.perfil === this.perfilId && zona.innerHTML) return; // ya está en pantalla
+      const m = this.store.mascota(this.perfilId);
+      const esc = AQ.util.esc;
+      zona.dataset.perfil = this.perfilId;
+      zona.innerHTML = '<div class="fondo-dialogo nacimiento">' +
+        '<div class="dialogo nacimiento-caja" role="dialog" aria-modal="true" aria-labelledby="nac-titulo">' +
+        AQ.escenaNacimiento(m.color, 144) +
+        '<h2 id="nac-titulo" class="titulo-pixel nac-texto">¡Nació ' + esc(m.nombre) + '!</h2>' +
+        '<p class="texto-suave nac-texto">Papá te validó ' + AQ.reglas.TAREAS_PARA_NACER + ' tareas y salió del huevo. Ahora comé con él una vez por día: cada comida cuesta ' +
+        AQ.reglas.VIDA.COSTO_COMIDA + ' monedas y le da vida.</p>' +
+        '<button type="button" class="boton primario ancho grande nac-texto" data-nacimiento="ok">¡Hola, ' + esc(m.nombre) + '!</button>' +
+        '</div></div>';
+      zona.querySelector('[data-nacimiento="ok"]').addEventListener('click', () => {
+        zona.innerHTML = '';
+        this.felizHasta = Date.now() + 3500;
+        this.mensajeFeliz = '¡Hola! Soy ' + m.nombre + '. Dame de comer una vez por día y vamos a estar bárbaro.';
+        this.store.marcarNacimientoVisto(this.perfilId);
+        setTimeout(() => { if (!this.felizActivo()) this.render(); }, 3600);
+      });
+      if (this._sonidoActivo(this.perfilId)) setTimeout(() => this.sonido.tocar(true), 1700);
+      setTimeout(() => { const b = zona.querySelector('[data-nacimiento="ok"]'); if (b) b.focus({ preventScroll: true }); }, 50);
     }
 
     /**
@@ -457,8 +492,11 @@
       this._exigirPadre();
       const lista = this.store.tareasDe(this.perfilId).filter((t) => t.estado === 'enviada');
       let total = 0;
+      const eraHuevo = !this.store.nacida(this.perfilId);
       lista.forEach((t) => { total += this.store.aprobar(t.id); });
-      this.aviso('Validadas ' + lista.length + ' tareas: +' + total + ' monedas.', 'ok');
+      this.aviso(eraHuevo && this.store.nacida(this.perfilId)
+        ? '¡Validadas ' + lista.length + ' tareas y el huevo se abrió! +' + total + ' monedas.'
+        : 'Validadas ' + lista.length + ' tareas: +' + total + ' monedas.', 'ok');
     },
 
     'terminar-validar'() {
@@ -558,7 +596,11 @@
       const t = this.store.tarea(el.dataset.id);
       const monto = this.store.aprobar(el.dataset.id);
       const p = this.store.perfil(t.perfilId);
-      this.aviso('Validada: +' + monto + ' monedas para ' + p.nombre + '.', 'ok');
+      if (this.store.nacimientoPendiente(p.id) && this.store.tareasValidadas(p.id) === AQ.reglas.TAREAS_PARA_NACER) {
+        this.aviso('¡El huevo se abrió! ' + p.nombre + ' lo va a ver nacer en su pantalla.', 'ok');
+      } else {
+        this.aviso('Validada: +' + monto + ' monedas para ' + p.nombre + '.', 'ok');
+      }
     },
 
     devolver(el) {
@@ -702,16 +744,15 @@
         this.atras(this.modoPadre ? 'padre' : 'hoy');
         return;
       }
-      const eraHuevo = this.store.mascota(this.perfilId).etapa === 'huevo';
       this.store.agregarTarea(this.perfilId, { materiaId: d.materiaId, titulo: d.titulo, detalle: d.detalle, vence: d.vence, foto: this.fotoTemporal }, this.modoPadre);
       this.fotoTemporal = null;
       if (this.modoPadre) {
         this.aviso('Tarea agregada.', 'ok');
       } else {
         this.felizHasta = Date.now() + 3000;
-        this.mensajeFeliz = eraHuevo ? '¡Hola! Acabo de nacer. Dame de comer una vez por día.' : '¡Anotada! Así no se te olvida.';
+        this.mensajeFeliz = '¡Anotada! Así no se te olvida.';
         setTimeout(() => { if (!this.felizActivo()) this.render(); }, 3100);
-        this.aviso(eraHuevo ? '¡Nació tu mascota! +' + AQ.reglas.MONEDAS.ANOTAR + ' monedas.' : 'Anotada. +' + AQ.reglas.MONEDAS.ANOTAR + ' monedas.', 'ok');
+        this.aviso('Anotada. +' + AQ.reglas.MONEDAS.ANOTAR + ' monedas.', 'ok');
       }
       this.atras(this.modoPadre ? 'padre' : 'hoy');
     },

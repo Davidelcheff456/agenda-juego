@@ -82,7 +82,7 @@
           nombre,
           anio: textoLimpio(datos.anio, 20),
           creado: Fecha.hoy(),
-          mascota: { nombre: textoLimpio(datos.mascota, 20) || 'Brote', color: 'lima', fondo: 'ninguno', colores: ['lima'], fondos: ['ninguno'] },
+          mascota: { nombre: textoLimpio(datos.mascota, 20) || 'Brote', color: 'lima', fondo: 'ninguno', colores: ['lima'], fondos: ['ninguno'], nacioEl: null, nacimientoVisto: false },
           bonosSemana: [],
           revision: { ultima: null, racha: 0 },
           vida: { valor: reglas.VIDA.MAX, revisadoHasta: Fecha.sumarDias(Fecha.hoy(), -1), comioEl: null, vacaciones: false },
@@ -179,14 +179,7 @@
           estado: 'pendiente', enviadaEl: null, aprobadaEl: null, nota: '',
           foto: datos.foto || null, examenId: null
         };
-        const nace = this.tareasDe(perfilId).length === 0;
         this.estado.tareas.push(t);
-        if (nace) {
-          // La mascota nace con vida completa; el hambre empieza a contar desde mañana.
-          const p = this.perfil(perfilId);
-          p.vida.valor = reglas.VIDA.MAX;
-          p.vida.revisadoHasta = Fecha.hoy();
-        }
         if (!porPadre) this._movimiento(perfilId, M.ANOTAR, 'Anotaste: ' + titulo, t.id, 'anotar');
         return t;
       });
@@ -248,9 +241,18 @@
         } else {
           cantidad = M.TARDE; motivo = 'Terminada tarde: ' + t.titulo;
         }
+        const eraHuevo = !this.nacida(t.perfilId);
         t.estado = 'aprobada';
         t.aprobadaEl = Fecha.hoy();
         this._movimiento(t.perfilId, cantidad, motivo, t.id, 'aprobacion');
+        if (eraHuevo && this.nacida(t.perfilId)) {
+          // Sale del huevo con vida completa; el hambre empieza a contar desde mañana.
+          const p = this.perfil(t.perfilId);
+          p.mascota.nacioEl = Fecha.hoy();
+          p.mascota.nacimientoVisto = false;
+          p.vida.valor = reglas.VIDA.MAX;
+          p.vida.revisadoHasta = Fecha.hoy();
+        }
         return cantidad;
       });
     }
@@ -397,7 +399,7 @@
       const ayer = Fecha.sumarDias(Fecha.hoy(), -1);
       if (!v.revisadoHasta) v.revisadoHasta = ayer;
       if (v.revisadoHasta >= ayer) return 0;
-      const nacida = this.tareasDe(perfilId).length > 0;
+      const nacida = this.nacida(perfilId);
       return this._confirmar('vida', () => {
         let perdidas = 0;
         if (nacida && !v.vacaciones) {
@@ -421,7 +423,7 @@
     alimentar(perfilId) {
       const p = this.perfil(perfilId);
       exigir(p, 'Perfil no encontrado.');
-      exigir(this.tareasDe(perfilId).length > 0, 'Todavía es un huevo: anotá tu primera tarea para que nazca.');
+      exigir(this.nacida(perfilId), 'Todavía es un huevo: nace cuando papá te valide ' + reglas.TAREAS_PARA_NACER + ' tareas.');
       exigir(!this.comioHoy(perfilId), 'Ya comió hoy. Mañana tiene hambre de nuevo.');
       const costo = reglas.VIDA.COSTO_COMIDA;
       exigir(this.saldo(perfilId) >= costo, 'Te faltan monedas para la comida. Terminá una tarea y volvé.');
@@ -645,8 +647,34 @@
         comioHoy: this.comioHoy(perfilId),
         vacaciones: this.perfil(perfilId).vida.vacaciones,
         saldo: this.saldo(perfilId),
-        tieneTareas: tareas.length > 0
+        tieneTareas: tareas.length > 0,
+        nacida: this.nacida(perfilId)
       };
+    }
+
+    /** Tareas validadas por el padre (no cuenta sesiones de estudio). */
+    tareasValidadas(perfilId) {
+      return this.tareasDe(perfilId).filter((t) => t.tipo === 'tarea' && t.estado === 'aprobada').length;
+    }
+
+    /** La mascota sale del huevo cuando el padre validó 3 tareas. */
+    nacida(perfilId) {
+      return this.tareasValidadas(perfilId) >= reglas.TAREAS_PARA_NACER;
+    }
+
+    /** true si la mascota ya nació pero el estudiante todavía no vio la animación. */
+    nacimientoPendiente(perfilId) {
+      const p = this.perfil(perfilId);
+      return !!p && this.nacida(perfilId) && !p.mascota.nacimientoVisto;
+    }
+
+    marcarNacimientoVisto(perfilId) {
+      const p = this.perfil(perfilId);
+      if (!p || p.mascota.nacimientoVisto) return;
+      return this._confirmar('mascota', () => {
+        p.mascota.nacimientoVisto = true;
+        if (!p.mascota.nacioEl) p.mascota.nacioEl = Fecha.hoy();
+      });
     }
 
     mascota(perfilId) {
@@ -658,7 +686,8 @@
         nombre: p.mascota.nombre,
         nivel,
         xp: Math.max(0, this.xp(perfilId)),
-        etapa: reglas.etapa(nivel, r.tieneTareas),
+        etapa: reglas.etapa(nivel, r.nacida),
+        validadas: this.tareasValidadas(perfilId),
         color: reglas.color(p.mascota.color),
         fondo: reglas.fondo(p.mascota.fondo),
         vida: r.vida,

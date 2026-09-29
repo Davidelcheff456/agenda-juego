@@ -72,16 +72,14 @@ with sync_playwright() as p:
     foto(page, '05-hoy-con-tareas')
     assert '15' in page.inner_text('.pastilla-monedas'), 'debería tener 15 monedas'
 
-    paso('darle de comer')
-    page.click('button:has-text("Darle de comer")')
-    page.wait_for_selector('text=Ya comió hoy')
-    assert page.inner_text('.pastilla-monedas').strip() == '10'
-    foto(page, '05b-comio')
+    paso('todavía es un huevo')
+    page.wait_for_selector('text=Soy un huevo')
+    assert page.locator('button:has-text("Darle de comer")').count() == 0
 
     paso('marcar hecha')
     page.click('.fila-tarea:has-text("Ejercicios 12") .casillero')
     page.wait_for_selector('text=Falta que papá la valide')
-    assert page.inner_text('.pastilla-monedas').strip() == '13', 'marcar hecha debe dar +3'
+    assert page.inner_text('.pastilla-monedas').strip() == '18', 'marcar hecha debe dar +3'
     foto(page, '06-mascota-feliz')
 
     paso('detalle y editar')
@@ -250,6 +248,29 @@ with sync_playwright() as p:
     page.click('.tarjeta-perfil')
     page.wait_for_selector('text=Papá: Falta la pregunta 4')
     foto(page, '13-hoy-devuelta')
+    assert page.evaluate("AQ.app.store.mascota(AQ.app.perfilId).etapa") == 'huevo'
+
+    paso('nacimiento con la tercera tarea validada')
+    page.click('.fila-tarea:has-text("Cuestionario") .casillero')
+    page.click('button:has-text("Validar con papá")')
+    page.fill('#dialogo-campo', '1234'); page.click('#dialogo [data-dialogo="si"]')
+    page.click('.item-aprobar:has-text("Cuestionario") button:has-text("Validar ·")')
+    page.wait_for_selector('text=¡El huevo se abrió!')
+    assert page.locator('#nacimiento .escena-nacimiento').count() == 0, 'no se muestra en la validación'
+    page.click('button:has-text("Listo, devolver el celular")')
+    page.wait_for_selector('#nacimiento .escena-nacimiento')
+    page.wait_for_timeout(900);  page.screenshot(path=str(CAP / '22a-nacimiento-tiembla.png'))
+    page.wait_for_timeout(1200); page.screenshot(path=str(CAP / '22b-nacimiento-rompe.png'))
+    page.wait_for_timeout(1400); page.screenshot(path=str(CAP / '22c-nacimiento-final.png'))
+    page.click('#nacimiento button:has-text("¡Hola")')
+    assert page.locator('#nacimiento .escena-nacimiento').count() == 0
+    page.reload(); page.click('.tarjeta-perfil')
+    assert page.locator('#nacimiento .escena-nacimiento').count() == 0, 'la animación se ve una sola vez'
+    page.click('button:has-text("Darle de comer")')
+    page.wait_for_selector('text=Ya comió hoy')
+    foto(page, '23-nacio-y-comio')
+    page.click('[aria-label="Configuración"]')
+    page.click('button:has-text("Salir de mi cuenta")')
 
     paso('persistencia tras recargar')
     page.reload()

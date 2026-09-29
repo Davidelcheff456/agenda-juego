@@ -41,7 +41,7 @@ Fase 1 de la propuesta: funciona en una sola computadora o celular, sin servidor
 
 Los valores están en `js/rules.js` (`MONEDAS`) y se cambian en un solo lugar.
 
-**Mascota:** nace de un huevo con la primera tarea y evoluciona con el nivel (bebé 1–3, joven 4–7, adulta 8+; cada nivel son 100 monedas ganadas).
+**Mascota:** arranca como un **huevo** y sale recién cuando el padre valida **3 tareas** (las sesiones de estudio no cuentan). Con cada tarea validada el huevo se raja un poco más, y mientras tanto las monedas se juntan igual. Cuando nace, la próxima vez que el estudiante abre Hoy o Mascota ve una animación (el huevo tiembla, se parte y sale el bebé) que se muestra una sola vez. Después evoluciona con el nivel (bebé 1–3, joven 4–7, adulta 8+; cada nivel son 100 monedas ganadas). Un huevo no come ni pierde vida.
 
 **Vida y comida:** la mascota tiene 5 corazones de vida. Come una vez por día con el botón "Darle de comer" (5 monedas) y cada comida le devuelve 1 corazón. Cada día que termina sin comer (porque el chico no entró o no tenía monedas) pierde 1 corazón. Con 2 o menos está *débil*; con 0 queda sin fuerzas pero no se muere, y comiendo se recupera. El día que nace no cuenta. El padre puede activar el **modo vacaciones** desde su panel para que no pierda vida en feriados largos o vacaciones.
 

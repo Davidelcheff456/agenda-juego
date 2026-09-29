@@ -92,7 +92,7 @@
       '</svg>' +
       '<div class="anillo-centro">' +
       (fase === 'listo'
-        ? AQ.dibujarMascota({ etapa: app.store.mascota(p.id).etapa, estado: 'feliz', color: app.store.mascota(p.id).color, tamanio: 96 })
+        ? AQ.dibujarMascota({ etapa: app.store.mascota(p.id).etapa, estado: 'feliz', color: app.store.mascota(p.id).color, tamanio: 96, grietas: app.store.mascota(p.id).validadas })
         : '<span id="pomo-tiempo" class="tiempo-grande" role="timer" aria-live="off">' + pomodoro.formatear(restante) + '</span>' +
           '<span class="texto-chico">' + (fase === 'foco' ? 'para el descanso' : 'para volver') + '</span>') +
       '</div></div>' +

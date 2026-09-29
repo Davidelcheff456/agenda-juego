@@ -89,7 +89,7 @@
     if (!('pinHash' in datos)) datos.pinHash = null;
     datos.version = VERSION_DATOS;
     for (const p of datos.perfiles) {
-      p.mascota = Object.assign({ nombre: 'Brote', color: 'lima', fondo: 'ninguno', colores: ['lima'], fondos: ['ninguno'] }, p.mascota || {});
+      p.mascota = Object.assign({ nombre: 'Brote', color: 'lima', fondo: 'ninguno', colores: ['lima'], fondos: ['ninguno'], nacioEl: null, nacimientoVisto: false }, p.mascota || {});
       p.bonosSemana = Array.isArray(p.bonosSemana) ? p.bonosSemana : [];
       p.revision = Object.assign({ ultima: null, racha: 0 }, p.revision || {});
       p.vida = Object.assign({ valor: 5, revisadoHasta: null, comioEl: null, vacaciones: false }, p.vida || {});

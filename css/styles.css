@@ -439,6 +439,76 @@ body.con-barra-pomo .zona-avisos { top: calc(66px + env(safe-area-inset-top, 0px
 .dos-datos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 8px; }
 .dos-datos > div { display: flex; flex-direction: column; }
 
+/* ---------- Huevo y nacimiento ---------- */
+.progreso-huevo { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--suave); }
+.progreso-huevo i { width: 14px; height: 18px; border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%; background: #33384C; flex-shrink: 0; }
+.progreso-huevo i.lleno { background: #EDE6D3; }
+.progreso-huevo span { margin-left: 4px; }
+.tarjeta-mascota.grande .progreso-huevo { justify-content: center; }
+
+@keyframes tiembla {
+  0%, 80%, 100% { transform: rotate(0); }
+  84% { transform: rotate(-6deg); }
+  88% { transform: rotate(6deg); }
+  92% { transform: rotate(-4deg); }
+  96% { transform: rotate(3deg); }
+}
+.mascota-caja.tiembla .mascota-svg { transform-origin: 50% 85%; animation: tiembla 3s ease-in-out infinite; }
+
+.nacimiento-caja { align-items: center; text-align: center; }
+.nacimiento-caja h2 { margin: 0; font-size: 28px; color: var(--lima); }
+.escena-nacimiento { position: relative; margin: 8px auto 4px; max-width: 100%; }
+.escena-nacimiento > div { position: absolute; inset: 0; line-height: 0; }
+/* Estado final como estilo base: si las animaciones están apagadas, se ve el bebé directamente. */
+.nac-huevo, .nac-mitad { opacity: 0; }
+.nac-mitad.arriba { clip-path: inset(0 0 50% 0); }
+.nac-mitad.abajo { clip-path: inset(50% 0 0 0); }
+.nac-chispas i { opacity: 0; }
+
+@keyframes nac-romper {
+  0% { opacity: 1; transform: rotate(0); }
+  10% { transform: rotate(-6deg); }
+  20% { transform: rotate(6deg); }
+  30% { transform: rotate(-8deg); }
+  40% { transform: rotate(8deg); }
+  50% { transform: rotate(-10deg); }
+  60% { transform: rotate(10deg); }
+  70% { transform: rotate(-12deg) scale(1.04); }
+  80% { transform: rotate(12deg) scale(1.06); }
+  90% { transform: rotate(0) scale(1.1); opacity: 1; }
+  99% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.1); }
+}
+@keyframes nac-arriba {
+  from { opacity: 1; transform: translate(0, 0) rotate(0); }
+  to { opacity: 0; transform: translate(-28px, -56px) rotate(-35deg); }
+}
+@keyframes nac-abajo {
+  from { opacity: 1; transform: translate(0, 0) rotate(0); }
+  to { opacity: 0; transform: translate(24px, 36px) rotate(20deg); }
+}
+@keyframes nac-aparece {
+  0% { opacity: 0; transform: scale(.3) translateY(20px); }
+  60% { opacity: 1; transform: scale(1.15) translateY(-10px); }
+  80% { transform: scale(.95) translateY(0); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes nac-texto {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.nac-huevo { transform-origin: 50% 85%; animation: nac-romper 1.9s ease-in-out both; }
+.nac-mitad.arriba { transform-origin: 50% 50%; animation: nac-arriba .9s ease-out 1.85s both; }
+.nac-mitad.abajo { transform-origin: 50% 50%; animation: nac-abajo .9s ease-out 1.85s both; }
+.nac-bebe { transform-origin: 50% 90%; animation: nac-aparece .8s cubic-bezier(.3, 1.4, .6, 1) 1.95s both; }
+.nac-chispas i { animation: chispa 1s ease-out 2.05s both; }
+.nac-chispas i { top: 45%; }
+.nac-texto { animation: nac-texto .5s ease-out 2.4s both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mascota-caja.tiembla .mascota-svg, .nac-huevo, .nac-mitad, .nac-bebe, .nac-chispas i, .nac-texto { animation: none !important; }
+}
+
 /* ---------- Validación en el celular del estudiante ---------- */
 .aviso-validar { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: var(--radio); background: var(--lima-fondo); color: #E3FFB0; font-size: 14px; }
 .aviso-validar .icono { flex-shrink: 0; }
